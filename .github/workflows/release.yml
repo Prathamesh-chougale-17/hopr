@@ -8,8 +8,38 @@ on:
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
+  quality-checks:
+    name: Quality Checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.22
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Lint
+        run: bun run lint
+
+      - name: Type check
+        run: bun run check-types
+
+      - name: Run tests
+        run: bun run test
+
+      - name: Build packages
+        run: bun run build
+
   release:
     name: Release
+    needs: quality-checks
     runs-on: ubuntu-latest
     permissions:
       contents: write
