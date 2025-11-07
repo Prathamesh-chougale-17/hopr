@@ -1,11 +1,12 @@
-# hopr - Industry-Standard Project Structure
+# hopr - Simplified Project Structure
 
-This document outlines the production-ready, industry-standard structure of the hopr CLI monorepo.
+This document outlines the production-ready structure of the hopr CLI monorepo.
 
 ## Overview
 
 hopr is built as a Turborepo monorepo with:
-- Shared packages for modularity and reusability
+- Single publishable CLI package in `packages/cli`
+- Shared internal packages for configuration
 - Changesets for version management
 - GitHub Actions for CI/CD
 - npm registry publishing setup
@@ -14,7 +15,7 @@ hopr is built as a Turborepo monorepo with:
 
 ```
 hopr/
-├── .changeset/                 # Changesets configuration and changelog entries
+├── .changeset/                 # Changesets configuration
 │   ├── config.json
 │   └── README.md
 │
@@ -25,52 +26,29 @@ hopr/
 │       └── test-cli.yml        # CLI testing on multiple platforms
 │
 ├── apps/
-│   ├── cli/                    # Main CLI application (publishable)
-│   │   ├── src/
-│   │   │   ├── commands/       # CLI commands (migrate, detect)
-│   │   │   └── index.ts        # CLI entry point
-│   │   ├── dist/               # Built output
-│   │   ├── package.json        # Package configuration for npm
-│   │   ├── tsconfig.json
-│   │   ├── README.md
-│   │   ├── USAGE.md
-│   │   ├── DEVELOPMENT.md
-│   │   └── QUICK_REFERENCE.md
-│   │
 │   ├── web/                    # Next.js app (for testing migrations)
 │   ├── docs/                   # Next.js docs app (for testing migrations)
 │   └── tanstack-template/      # TanStack Start app (migration target example)
 │
 ├── packages/
-│   ├── cli-core/               # Core utilities package (publishable)
+│   ├── cli/                    # Main CLI package (publishable as "hopr")
 │   │   ├── src/
-│   │   │   ├── detectors/      # Framework detection logic
-│   │   │   └── utils/          # File system, logging, backup
+│   │   │   ├── commands/       # CLI commands (migrate, detect)
+│   │   │   ├── detectors/      # Framework detection
+│   │   │   ├── migrators/      # Migration implementations
+│   │   │   ├── transformers/   # Code and file transformers
+│   │   │   ├── utils/          # Utilities (logger, file-system, backup)
+│   │   │   └── index.ts        # Entry point
 │   │   ├── dist/               # Built output
-│   │   ├── package.json
-│   │   └── tsconfig.json
+│   │   ├── package.json        # v0.1.0, publishable to npm
+│   │   ├── tsconfig.json
+│   │   ├── README.md
+│   │   ├── USAGE.md
+│   │   └── DEVELOPMENT.md
 │   │
-│   ├── cli-transformers/       # Transformers package (publishable)
-│   │   ├── src/
-│   │   │   ├── file-transformer.ts
-│   │   │   ├── code-transformer.ts
-│   │   │   ├── package-transformer.ts
-│   │   │   └── config-transformer.ts
-│   │   ├── dist/               # Built output
-│   │   ├── package.json
-│   │   └── tsconfig.json
-│   │
-│   ├── cli-migrators/          # Migrators package (publishable)
-│   │   ├── src/
-│   │   │   ├── base.ts         # Base migrator interface
-│   │   │   └── nextjs-to-tanstack.ts
-│   │   ├── dist/               # Built output
-│   │   ├── package.json
-│   │   └── tsconfig.json
-│   │
-│   ├── ui/                     # Shared UI components
-│   ├── eslint-config/          # Shared ESLint configuration
-│   └── typescript-config/      # Shared TypeScript configuration
+│   ├── ui/                     # Shared UI components (@repo/ui)
+│   ├── eslint-config/          # Shared ESLint config (@repo/eslint-config)
+│   └── typescript-config/      # Shared TypeScript config (@repo/typescript-config)
 │
 ├── docs/
 │   └── nextjs-to-tanstack-start.md  # Migration guide
@@ -83,56 +61,66 @@ hopr/
 ├── README.md                   # Main documentation
 ├── CONTRIBUTING.md             # Contribution guidelines
 ├── PUBLISHING.md               # Publishing guide
-├── CLAUDE.md                   # Claude Code guidance
-└── CLI_IMPLEMENTATION_SUMMARY.md  # Implementation summary
+└── CLAUDE.md                   # Claude Code guidance
 ```
 
 ## Package Architecture
 
-### Published Packages
+### Published Package
 
-All CLI-related packages are published to npm with `@hopr` scope:
-
-1. **hopr** (`apps/cli`)
-   - Main CLI application
-   - Executable entry point
-   - Command orchestration
-   - User interaction
-
-2. **@hopr/cli-core** (`packages/cli-core`)
-   - Framework detection
-   - File system utilities
-   - Logging and backup
-   - Shared types
-
-3. **@hopr/cli-transformers** (`packages/cli-transformers`)
-   - File transformations
-   - AST-based code transformations
-   - Package.json updates
-   - Configuration generation
-
-4. **@hopr/cli-migrators** (`packages/cli-migrators`)
-   - Migration orchestration
-   - Framework-specific migrators
-   - Migration pipeline
-
-### Dependency Graph
-
-```
-hopr (CLI)
- ├─→ @hopr/cli-core
- ├─→ @hopr/cli-transformers
- │    └─→ @hopr/cli-core
- └─→ @hopr/cli-migrators
-      ├─→ @hopr/cli-core
-      └─→ @hopr/cli-transformers
-```
+**hopr** (`packages/cli`)
+- Main CLI application
+- Executable entry point (`hopr` command)
+- All functionality in single package:
+  - Framework detection
+  - File and code transformers
+  - Migration implementations
+  - Utilities (logging, file system, backup)
 
 ### Internal Packages (Not Published)
 
 - **@repo/ui** - Shared React components
 - **@repo/eslint-config** - Shared ESLint rules
 - **@repo/typescript-config** - Shared TypeScript configs
+
+## CLI Package Structure
+
+```
+packages/cli/
+├── src/
+│   ├── commands/
+│   │   ├── migrate.ts          # Migration command
+│   │   └── detect.ts           # Detection command
+│   │
+│   ├── detectors/
+│   │   ├── index.ts            # Framework detector
+│   │   ├── nextjs.ts           # Next.js detector
+│   │   └── types.ts            # Type definitions
+│   │
+│   ├── migrators/
+│   │   ├── base.ts             # Base migrator
+│   │   └── nextjs-to-tanstack.ts  # Next.js → TanStack
+│   │
+│   ├── transformers/
+│   │   ├── file-transformer.ts      # File operations
+│   │   ├── code-transformer.ts      # AST transformations
+│   │   ├── package-transformer.ts   # package.json updates
+│   │   └── config-transformer.ts    # Config generation
+│   │
+│   ├── utils/
+│   │   ├── logger.ts           # Colored logging
+│   │   ├── file-system.ts      # File system utilities
+│   │   └── backup.ts           # Backup management
+│   │
+│   └── index.ts                # CLI entry point
+│
+├── dist/                       # Built output
+├── package.json                # Package configuration
+├── tsconfig.json               # TypeScript config
+├── README.md                   # Package documentation
+├── USAGE.md                    # Usage guide
+└── DEVELOPMENT.md              # Development guide
+```
 
 ## Version Management
 
@@ -144,21 +132,7 @@ hopr (CLI)
 4. **Open PR**: Submit pull request
 5. **Merge PR**: Changesets Action creates "Version Packages" PR
 6. **Review versions**: Check version bumps and changelogs
-7. **Merge version PR**: Packages are automatically published
-
-### Linked Versions
-
-All CLI packages are linked together in `.changeset/config.json`:
-
-```json
-{
-  "linked": [
-    ["hopr", "@hopr/cli-core", "@hopr/cli-transformers", "@hopr/cli-migrators"]
-  ]
-}
-```
-
-This means they all version together for consistency.
+7. **Merge version PR**: Package is automatically published to npm
 
 ## CI/CD Pipeline
 
@@ -171,7 +145,7 @@ This means they all version together for consistency.
 
 2. **Release (release.yml)**
    - Runs on: Push to main
-   - Jobs: Build and publish packages
+   - Jobs: Build and publish package
    - Triggers: When changesets exist
    - Creates: Version Packages PR or publishes
 
@@ -208,18 +182,11 @@ Defined in `turbo.json`:
 }
 ```
 
-### Build Order
-
-1. **cli-core** → Built first (no dependencies)
-2. **cli-transformers** → Depends on cli-core
-3. **cli-migrators** → Depends on cli-core and cli-transformers
-4. **hopr (CLI app)** → Depends on all above
-
 ## Publishing Strategy
 
 ### Access Control
 
-All packages use public access:
+Package uses public access:
 
 ```json
 {
@@ -232,7 +199,7 @@ All packages use public access:
 
 ### Package Contents
 
-Each package specifies files to include:
+Package specifies files to include:
 
 ```json
 {
@@ -271,7 +238,7 @@ bun run build
 # Create branch
 git checkout -b feature/your-feature
 
-# Make changes to packages/cli-core, etc.
+# Make changes to packages/cli
 
 # Add changeset
 bun changeset
@@ -288,9 +255,9 @@ git push origin feature/your-feature
 
 ```bash
 # Test CLI locally
-cd apps/cli
-bun run src/index.ts detect ../web
-bun run src/index.ts migrate ../web --dry-run
+cd packages/cli
+bun run src/index.ts detect ../../apps/web
+bun run src/index.ts migrate ../../apps/web --dry-run
 
 # Link globally for testing
 npm link
@@ -305,20 +272,20 @@ npm unlink -g hopr
 
 ## Best Practices Implemented
 
-### 1. Modularity
-- Separated concerns into focused packages
-- Reusable components across projects
-- Clear dependency boundaries
+### 1. Simplicity
+- Single package instead of multiple packages
+- All code in one place
+- Easier to maintain and understand
 
 ### 2. Type Safety
 - Full TypeScript implementation
 - Strict mode enabled
-- Composite projects for incremental builds
+- Comprehensive type definitions
 
 ### 3. Version Management
 - Automated with Changesets
 - Semantic versioning
-- Linked package versions
+- Clear changelog
 
 ### 4. CI/CD
 - Automated testing
@@ -331,12 +298,7 @@ npm unlink -g hopr
 - Contributing guidelines
 - Publishing instructions
 
-### 6. Package Management
-- Workspace dependencies
-- Exact versions
-- Public access configured
-
-### 7. Code Quality
+### 6. Code Quality
 - ESLint for linting
 - TypeScript for type checking
 - Prettier for formatting
@@ -347,33 +309,17 @@ npm unlink -g hopr
 - No secrets in repository
 - NPM_TOKEN stored in GitHub Secrets
 - Use automation tokens
-- Public access for all packages
+- Public access for package
 - MIT License clearly stated
 
 ## Scalability
 
 The architecture supports:
 - Adding new framework migrations
-- Adding new shared packages
-- Independent package versioning (if needed)
+- Adding new commands
+- Independent versioning
 - Multi-language support (future)
 - Plugin system (future)
-
-## Maintenance
-
-### Regular Tasks
-
-- Update dependencies regularly
-- Review and merge Dependabot PRs
-- Monitor CI/CD pipelines
-- Respond to issues
-- Review PRs
-
-### Versioning Guidelines
-
-- **Major (1.0.0)**: Breaking changes
-- **Minor (0.1.0)**: New features
-- **Patch (0.0.1)**: Bug fixes
 
 ## Resources
 
@@ -384,10 +330,8 @@ The architecture supports:
 
 ---
 
-This structure follows industry best practices for:
-- Monorepo management
-- Package publishing
-- Version control
-- CI/CD automation
-- Documentation
-- Open source projects
+This simplified structure follows industry best practices with a focus on:
+- **Simplicity** - Single package, easier to maintain
+- **Clarity** - Clear directory structure
+- **Maintainability** - Well-organized code
+- **Professionalism** - Complete documentation

@@ -9,7 +9,7 @@
     "check-types": "turbo run check-types",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "release": "turbo run build --filter=hopr --filter=@hopr/* && changeset publish"
+    "release": "turbo run build --filter=hopr && changeset publish"
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.7",

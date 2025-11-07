@@ -15,13 +15,13 @@
     "ast",
     "turborepo"
   ],
-  "homepage": "https://github.com/yourusername/hopr#readme",
+  "homepage": "https://github.com/Prathamesh-Chougale-17/hopr#readme",
   "bugs": {
-    "url": "https://github.com/yourusername/hopr/issues"
+    "url": "https://github.com/Prathamesh-Chougale-17/hopr/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yourusername/hopr.git",
+    "url": "git+https://github.com/Prathamesh-Chougale-17/hopr.git",
     "directory": "apps/cli"
   },
   "license": "MIT",
