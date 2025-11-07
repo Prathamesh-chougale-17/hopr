@@ -78,7 +78,12 @@ bun run test
    - Has its own testing setup with Vitest
    - Uses shadcn/ui components (install with `pnpx shadcn@latest add <component>`)
 
-4. **cli** - Empty directory (placeholder for future CLI tool)
+4. **cli** - Framework migration CLI tool (`@hopr/cli`)
+   - Migrates projects between frameworks (Next.js → TanStack Start)
+   - Auto-detects frameworks and package managers
+   - Built with Commander, Babel, and Prettier
+   - Run with: `cd apps/cli && bun run src/index.ts [command]`
+   - See [apps/cli/USAGE.md](apps/cli/USAGE.md) for detailed usage
 
 ### Packages (`packages/`)
 
@@ -131,10 +136,43 @@ bunx shadcn@latest add <component-name>
 3. **Type checking:** Run before committing to catch TypeScript errors
 4. **Turbo filters:** Use `--filter=<app-name>` to run commands for specific apps
 
+## hopr CLI Tool
+
+The `hopr` CLI tool automates framework migrations:
+
+### Quick Start
+
+```bash
+cd apps/cli
+bun install
+bun run src/index.ts detect ../web     # Detect framework
+bun run src/index.ts migrate ../web    # Migrate project
+```
+
+### Commands
+
+- `hopr detect [path]` - Detect framework and structure
+- `hopr migrate <path> [options]` - Migrate between frameworks
+  - `--dry-run` - Preview changes without applying
+  - `--from <framework>` - Source framework (auto-detected)
+  - `--to <framework>` - Target framework (default: tanstack-start)
+  - `-y, --yes` - Skip confirmation
+
+### Migration Features
+
+- **Auto-detection:** Identifies framework and package manager
+- **Safe by default:** Creates backups in `.hopr-backup/`
+- **Smart transformations:** AST-based code modifications
+- **File structure:** Renames and reorganizes routes automatically
+- **Configuration:** Generates Vite config, router setup, etc.
+
+See [apps/cli/USAGE.md](apps/cli/USAGE.md) for complete documentation.
+
 ## Important Notes
 
 - Node.js version requirement: >=18
-- The repository uses TypeScript 5.9.2 across all packages
+- The repository uses TypeScript 5.9.2 across all packages (CLI uses 5.9.2)
 - All packages use ES modules (`"type": "module"`)
 - Next.js apps use React 19.2.0
 - TanStack template uses file-based routing with auto-generated route tree
+- CLI tool uses Babel for AST transformations and Prettier for code formatting
