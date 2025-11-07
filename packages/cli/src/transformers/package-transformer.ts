@@ -140,18 +140,17 @@ export class PackageTransformer {
    */
   getAddCommand(packages: string[], isDev = false): string {
     const pkgList = packages.join(" ");
-    const devFlag = isDev ? "-D" : "";
 
     switch (this.packageManager) {
       case "bun":
-        return `bun add ${devFlag} ${pkgList}`.trim();
+        return isDev ? `bun add -D ${pkgList}` : `bun add ${pkgList}`;
       case "pnpm":
-        return `pnpm add ${devFlag} ${pkgList}`.trim();
+        return isDev ? `pnpm add -D ${pkgList}` : `pnpm add ${pkgList}`;
       case "yarn":
-        return `yarn add ${isDev ? "--dev" : ""} ${pkgList}`.trim();
+        return isDev ? `yarn add --dev ${pkgList}` : `yarn add ${pkgList}`;
       case "npm":
       default:
-        return `npm install ${devFlag} ${pkgList}`.trim();
+        return isDev ? `npm install -D ${pkgList}` : `npm install ${pkgList}`;
     }
   }
 }

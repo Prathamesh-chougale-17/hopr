@@ -1,9 +1,13 @@
 import { parse } from "@babel/parser";
-import traverse from "@babel/traverse";
+import traverseModule from "@babel/traverse";
+import type { NodePath } from "@babel/traverse";
 import * as t from "@babel/types";
 import { FileSystem } from "../utils/file-system.js";
 import { logger } from "../utils/logger.js";
 import prettier from "prettier";
+
+// Handle ESM/CJS interop for @babel/traverse
+const traverse = (traverseModule as any).default || traverseModule;
 
 export class CodeTransformer {
   /**
@@ -29,7 +33,7 @@ export class CodeTransformer {
 
     traverse(ast, {
       // Remove Next.js Metadata import
-      ImportDeclaration(path) {
+      ImportDeclaration(path: NodePath<t.ImportDeclaration>) {
         const source = path.node.source.value;
 
         if (source === "next" || source === "next/font/local") {
@@ -47,7 +51,7 @@ export class CodeTransformer {
       },
 
       // Remove metadata export
-      ExportNamedDeclaration(path) {
+      ExportNamedDeclaration(path: NodePath<t.ExportNamedDeclaration>) {
         if (
           path.node.declaration &&
           t.isVariableDeclaration(path.node.declaration)

@@ -29,6 +29,14 @@
   "bin": {
     "hopr": "./dist/index.js"
   },
+  "exports": {
+    ".": "./dist/index.js",
+    "./detectors": "./dist/detectors/index.js",
+    "./detectors/nextjs": "./dist/detectors/nextjs.js",
+    "./transformers/package-transformer": "./dist/transformers/package-transformer.js",
+    "./transformers/code-transformer": "./dist/transformers/code-transformer.js",
+    "./utils/file-system": "./dist/utils/file-system.js"
+  },
   "files": [
     "dist",
     "README.md",
@@ -44,10 +52,14 @@
   },
   "dependencies": {
     "@antfu/ni": "^0.23.2",
-    "@hopr/cli-core": "*",
-    "@hopr/cli-migrators": "*",
-    "@hopr/cli-transformers": "*",
+    "@babel/parser": "^7.26.3",
+    "@babel/traverse": "^7.26.5",
+    "@babel/types": "^7.26.3",
     "commander": "^12.1.0",
+    "fast-glob": "^3.3.2",
+    "fs-extra": "^11.2.0",
+    "ora": "^8.1.2",
+    "prettier": "^3.4.2",
     "prompts": "^2.4.2"
   },
   "devDependencies": {

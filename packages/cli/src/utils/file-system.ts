@@ -74,9 +74,14 @@ export class FileSystem {
     patterns: string | string[],
     options?: { cwd?: string; ignore?: string[] }
   ): Promise<string[]> {
+    const defaultIgnore = ["**/node_modules/**", "**/dist/**", "**/.next/**"];
+    const ignorePatterns = options?.ignore
+      ? [...defaultIgnore, ...options.ignore]
+      : defaultIgnore;
+
     return await glob(patterns, {
       cwd: options?.cwd,
-      ignore: options?.ignore || ["**/node_modules/**", "**/dist/**", "**/.next/**"],
+      ignore: ignorePatterns,
       absolute: false,
     });
   }
