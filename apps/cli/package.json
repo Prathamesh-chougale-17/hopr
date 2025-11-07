@@ -1,40 +1,68 @@
 {
-  "name": "@hopr/cli",
+  "name": "hopr",
   "version": "0.1.0",
   "type": "module",
-  "private": true,
+  "private": false,
   "description": "CLI tool for migrating fullstack web projects between frameworks",
+  "keywords": [
+    "cli",
+    "migration",
+    "nextjs",
+    "tanstack-start",
+    "framework",
+    "migration-tool",
+    "code-mod",
+    "ast",
+    "turborepo"
+  ],
+  "homepage": "https://github.com/yourusername/hopr#readme",
+  "bugs": {
+    "url": "https://github.com/yourusername/hopr/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/hopr.git",
+    "directory": "apps/cli"
+  },
+  "license": "MIT",
+  "author": "Your Name",
   "bin": {
     "hopr": "./dist/index.js"
   },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "dev": "bun run src/index.ts",
-    "build": "bun build src/index.ts --outdir dist --target node --minify",
+    "build": "tsc && chmod +x dist/index.js",
     "start": "node dist/index.js",
     "lint": "eslint --max-warnings 0",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "prepublishOnly": "bun run build"
   },
   "dependencies": {
     "@antfu/ni": "^0.23.2",
-    "@babel/parser": "^7.26.3",
-    "@babel/traverse": "^7.26.5",
-    "@babel/types": "^7.26.3",
-    "chalk": "^5.4.1",
+    "@hopr/cli-core": "*",
+    "@hopr/cli-migrators": "*",
+    "@hopr/cli-transformers": "*",
     "commander": "^12.1.0",
-    "fast-glob": "^3.3.3",
-    "fs-extra": "^11.2.0",
-    "ora": "^8.1.1",
-    "prompts": "^2.4.2",
-    "prettier": "^3.6.2"
+    "prompts": "^2.4.2"
   },
   "devDependencies": {
     "@repo/eslint-config": "*",
     "@repo/typescript-config": "*",
-    "@types/babel__traverse": "^7.20.6",
-    "@types/fs-extra": "^11.0.4",
     "@types/node": "^22.15.3",
     "@types/prompts": "^2.4.9",
     "eslint": "^9.39.1",
     "typescript": "5.9.2"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   }
 }
