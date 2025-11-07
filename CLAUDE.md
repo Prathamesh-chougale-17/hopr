@@ -78,24 +78,24 @@ bun run test
    - Has its own testing setup with Vitest
    - Uses shadcn/ui components (install with `pnpx shadcn@latest add <component>`)
 
-4. **cli** - Framework migration CLI tool (`@hopr/cli`)
+### Packages (`packages/`)
+
+1. **cli** - Framework migration CLI tool (`hopr`)
    - Migrates projects between frameworks (Next.js → TanStack Start)
    - Auto-detects frameworks and package managers
    - Built with Commander, Babel, and Prettier
-   - Run with: `cd apps/cli && bun run src/index.ts [command]`
-   - See [apps/cli/USAGE.md](apps/cli/USAGE.md) for detailed usage
+   - Run with: `cd packages/cli && bun run src/index.ts [command]`
+   - See [packages/cli/USAGE.md](packages/cli/USAGE.md) for detailed usage
 
-### Packages (`packages/`)
-
-1. **@repo/ui** - Shared React component library
+2. **@repo/ui** - Shared React component library
    - Components: button, card, code
    - Exports components from `src/*.tsx`
    - Generate new components: `turbo gen react-component`
 
-2. **@repo/eslint-config** - Shared ESLint configurations
+3. **@repo/eslint-config** - Shared ESLint configurations
    - Exports: `./base`, `./next-js`, `./react-internal`
 
-3. **@repo/typescript-config** - Shared TypeScript configurations
+4. **@repo/typescript-config** - Shared TypeScript configurations
    - Base, Next.js, and React library configs
 
 ## Architecture Notes
@@ -143,10 +143,10 @@ The `hopr` CLI tool automates framework migrations:
 ### Quick Start
 
 ```bash
-cd apps/cli
+cd packages/cli
 bun install
-bun run src/index.ts detect ../web     # Detect framework
-bun run src/index.ts migrate ../web    # Migrate project
+bun run src/index.ts detect ../../apps/web     # Detect framework
+bun run src/index.ts migrate ../../apps/web    # Migrate project
 ```
 
 ### Commands
@@ -166,7 +166,7 @@ bun run src/index.ts migrate ../web    # Migrate project
 - **File structure:** Renames and reorganizes routes automatically
 - **Configuration:** Generates Vite config, router setup, etc.
 
-See [apps/cli/USAGE.md](apps/cli/USAGE.md) for complete documentation.
+See [packages/cli/USAGE.md](packages/cli/USAGE.md) for complete documentation.
 
 ## Important Notes
 

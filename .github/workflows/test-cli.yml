@@ -3,8 +3,7 @@ name: Test CLI
 on:
   pull_request:
     paths:
-      - 'apps/cli/**'
-      - 'packages/cli-*/**'
+      - 'packages/cli/**'
       - '.github/workflows/test-cli.yml'
 
 jobs:
@@ -32,14 +31,14 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Build packages
-        run: bun run build --filter=hopr --filter=@hopr/*
+      - name: Build CLI package
+        run: bun run build --filter=hopr
 
       - name: Test CLI detect command
-        run: cd apps/cli && bun run src/index.ts detect ../web
+        run: cd packages/cli && bun run src/index.ts detect ../../apps/web
 
       - name: Test CLI help
-        run: cd apps/cli && bun run src/index.ts --help
+        run: cd packages/cli && bun run src/index.ts --help
 
       - name: Test CLI migrate --dry-run
-        run: cd apps/cli && bun run src/index.ts migrate ../web --dry-run
+        run: cd packages/cli && bun run src/index.ts migrate ../../apps/web --dry-run

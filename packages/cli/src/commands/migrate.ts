@@ -1,9 +1,9 @@
 import prompts from "prompts";
-import { FrameworkDetector } from "@hopr/cli-core/detectors/index.js";
-import { NextJsToTanStackMigrator } from "@hopr/cli-migrators/nextjs-to-tanstack.js";
-import { MigrationOptions } from "@hopr/cli-migrators/base.js";
-import { logger } from "@hopr/cli-core/utils/logger.js";
-import { FileSystem } from "@hopr/cli-core/utils/file-system.js";
+import { FrameworkDetector } from "../detectors/index.js";
+import { NextJsToTanStackMigrator } from "../migrators/nextjs-to-tanstack.js";
+import { MigrationOptions } from "../migrators/base.js";
+import { logger } from "../utils/logger.js";
+import { FileSystem } from "../utils/file-system.js";
 
 export interface MigrateCommandOptions {
   from?: string;

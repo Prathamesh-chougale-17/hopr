@@ -1,6 +1,6 @@
-import { FrameworkDetector } from "@hopr/cli-core/detectors/index.js";
-import { logger } from "@hopr/cli-core/utils/logger.js";
-import { FileSystem } from "@hopr/cli-core/utils/file-system.js";
+import { FrameworkDetector } from "../detectors/index.js";
+import { logger } from "../utils/logger.js";
+import { FileSystem } from "../utils/file-system.js";
 
 export async function detectCommand(targetPath: string): Promise<void> {
   try {
