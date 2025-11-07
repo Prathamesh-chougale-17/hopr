@@ -33,14 +33,14 @@ export class FileSystem {
   /**
    * Read and parse JSON file
    */
-  static async readJson<T = any>(filePath: string): Promise<T> {
+  static async readJson<T = unknown>(filePath: string): Promise<T> {
     return await fs.readJson(filePath);
   }
 
   /**
    * Write JSON to file with formatting
    */
-  static async writeJson(filePath: string, data: any): Promise<void> {
+  static async writeJson(filePath: string, data: unknown): Promise<void> {
     await fs.ensureDir(path.dirname(filePath));
     await fs.writeJson(filePath, data, { spaces: 2 });
   }
@@ -72,7 +72,7 @@ export class FileSystem {
    */
   static async findFiles(
     patterns: string | string[],
-    options?: { cwd?: string; ignore?: string[] },
+    options?: { cwd?: string; ignore?: string[] }
   ): Promise<string[]> {
     const defaultIgnore = ["**/node_modules/**", "**/dist/**", "**/.next/**"];
     const ignorePatterns = options?.ignore

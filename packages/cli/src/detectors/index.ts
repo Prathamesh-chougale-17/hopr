@@ -1,14 +1,19 @@
 import path from "path";
 import { FileSystem } from "../utils/file-system.js";
 import { NextJsDetector } from "./nextjs.js";
-import { DetectionResult, Framework, PackageManager } from "./types.js";
+import {
+  DetectionResult,
+  Framework,
+  PackageManager,
+  PackageJson,
+} from "./types.js";
 
 export class FrameworkDetector {
   /**
    * Detect package manager from lockfiles
    */
   static async detectPackageManager(
-    projectPath: string,
+    projectPath: string
   ): Promise<PackageManager> {
     if (await FileSystem.exists(path.join(projectPath, "bun.lockb"))) {
       return "bun";
@@ -40,7 +45,9 @@ export class FrameworkDetector {
     const packageJsonPath = path.join(projectPath, "package.json");
     if (await FileSystem.exists(packageJsonPath)) {
       try {
-        const packageJson = await FileSystem.readJson(packageJsonPath);
+        const packageJson = (await FileSystem.readJson<PackageJson>(
+          packageJsonPath
+        )) as PackageJson;
         const dependencies = {
           ...packageJson.dependencies,
           ...packageJson.devDependencies,
@@ -91,14 +98,14 @@ export class FrameworkDetector {
         hasSrcFolder: await FileSystem.exists(path.join(resolvedPath, "src")),
         hasAppFolder: await FileSystem.exists(path.join(resolvedPath, "app")),
         hasAppFolderInSrc: await FileSystem.exists(
-          path.join(resolvedPath, "src", "app"),
+          path.join(resolvedPath, "src", "app")
         ),
         hasPagesFolder: await FileSystem.exists(
-          path.join(resolvedPath, "pages"),
+          path.join(resolvedPath, "pages")
         ),
         hasNextConfig: false,
         hasViteConfig: await FileSystem.exists(
-          path.join(resolvedPath, "vite.config.ts"),
+          path.join(resolvedPath, "vite.config.ts")
         ),
         packageJsonPath: path.join(resolvedPath, "package.json"),
       };

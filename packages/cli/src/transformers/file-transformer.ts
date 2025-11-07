@@ -100,7 +100,7 @@ export class FileTransformer {
           const newPath = path.join(routesDir, newRelativePath);
 
           logger.info(
-            `Transforming dynamic route: ${file} → ${newRelativePath}`,
+            `Transforming dynamic route: ${file} → ${newRelativePath}`
           );
           await FileSystem.move(fullPath, newPath);
         }
@@ -121,8 +121,6 @@ export class FileTransformer {
 
     for (const appDir of appDirs) {
       if (await FileSystem.exists(appDir)) {
-        const routesDir = appDir.replace(/[/\\]app$/, "/routes");
-
         // Find all catch-all routes
         const files = await FileSystem.findFiles("**/[...*/page.tsx", {
           cwd: appDir,

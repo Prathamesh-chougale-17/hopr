@@ -1,7 +1,5 @@
 import path from "path";
-import ora from "ora";
 import { BaseMigrator, MigrationResult } from "./base.js";
-import { DetectionResult } from "../detectors/types.js";
 import { FileTransformer } from "../transformers/file-transformer.js";
 import { PackageTransformer } from "../transformers/package-transformer.js";
 import { CodeTransformer } from "../transformers/code-transformer.js";
@@ -37,7 +35,7 @@ export class NextJsToTanStackMigrator extends BaseMigrator {
       !this.detection.structure.hasAppFolderInSrc
     ) {
       errors.push(
-        "Project does not use Next.js App Router. Only App Router is supported.",
+        "Project does not use Next.js App Router. Only App Router is supported."
       );
     }
 
@@ -111,7 +109,7 @@ export class NextJsToTanStackMigrator extends BaseMigrator {
       if (!this.options.dryRun) {
         const packageTransformer = new PackageTransformer(
           this.projectPath,
-          this.detection.packageManager,
+          this.detection.packageManager
         );
         await packageTransformer.transformForTanStackStart();
         this.result.filesModified.push("package.json");
@@ -139,7 +137,7 @@ export class NextJsToTanStackMigrator extends BaseMigrator {
           this.projectPath,
           "src",
           "routes",
-          "__root.tsx",
+          "__root.tsx"
         );
         if (await FileSystem.exists(rootLayoutPath)) {
           await CodeTransformer.transformRootLayout(rootLayoutPath);
@@ -151,7 +149,7 @@ export class NextJsToTanStackMigrator extends BaseMigrator {
           this.projectPath,
           "src",
           "routes",
-          "index.tsx",
+          "index.tsx"
         );
         if (await FileSystem.exists(indexPath)) {
           await CodeTransformer.transformRoutePage(indexPath, "/");
@@ -177,7 +175,7 @@ export class NextJsToTanStackMigrator extends BaseMigrator {
       logger.step(
         currentStep,
         totalSteps,
-        "Updating TypeScript configuration...",
+        "Updating TypeScript configuration..."
       );
       if (!this.options.dryRun) {
         await CodeTransformer.transformTsConfig(this.projectPath);
@@ -208,7 +206,7 @@ export class NextJsToTanStackMigrator extends BaseMigrator {
         this.result.filesDeleted.push(
           "next.config.*",
           "next-env.d.ts",
-          "postcss.config.*",
+          "postcss.config.*"
         );
       }
 
@@ -221,7 +219,7 @@ export class NextJsToTanStackMigrator extends BaseMigrator {
         logger.info("Next steps:");
         const packageTransformer = new PackageTransformer(
           this.projectPath,
-          this.detection.packageManager,
+          this.detection.packageManager
         );
         logger.list([
           `Run: ${packageTransformer.getInstallCommand()}`,
@@ -233,7 +231,7 @@ export class NextJsToTanStackMigrator extends BaseMigrator {
       this.result.success = true;
     } catch (error) {
       this.result.errors.push(
-        error instanceof Error ? error.message : String(error),
+        error instanceof Error ? error.message : String(error)
       );
       logger.error(`Migration failed: ${error}`);
     }

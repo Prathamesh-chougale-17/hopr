@@ -9,6 +9,16 @@ export type Framework =
 
 export type PackageManager = "bun" | "npm" | "yarn" | "pnpm";
 
+export interface PackageJson {
+  name?: string;
+  version?: string;
+  type?: string;
+  dependencies?: Record<string, string>;
+  devDependencies?: Record<string, string>;
+  scripts?: Record<string, string>;
+  [key: string]: unknown;
+}
+
 export interface ProjectStructure {
   hasSrcFolder: boolean;
   hasAppFolder: boolean;

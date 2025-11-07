@@ -1,6 +1,6 @@
 import path from "path";
 import { FileSystem } from "../utils/file-system.js";
-import { ProjectStructure } from "./types.js";
+import type { ProjectStructure, PackageJson } from "./types.js";
 
 export class NextJsDetector {
   /**
@@ -14,7 +14,9 @@ export class NextJsDetector {
     }
 
     try {
-      const packageJson = await FileSystem.readJson(packageJsonPath);
+      const packageJson = (await FileSystem.readJson<PackageJson>(
+        packageJsonPath
+      )) as PackageJson;
       const dependencies = {
         ...packageJson.dependencies,
         ...packageJson.devDependencies,
@@ -30,12 +32,12 @@ export class NextJsDetector {
    * Analyze Next.js project structure
    */
   static async analyzeStructure(
-    projectPath: string,
+    projectPath: string
   ): Promise<ProjectStructure> {
     const hasSrcFolder = await FileSystem.exists(path.join(projectPath, "src"));
     const hasAppFolder = await FileSystem.exists(path.join(projectPath, "app"));
     const hasAppFolderInSrc = await FileSystem.exists(
-      path.join(projectPath, "src", "app"),
+      path.join(projectPath, "src", "app")
     );
     const hasPagesFolder =
       (await FileSystem.exists(path.join(projectPath, "pages"))) ||

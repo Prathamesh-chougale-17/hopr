@@ -1,6 +1,7 @@
 import path from "path";
 import { FileSystem } from "../utils/file-system.js";
 import { logger } from "../utils/logger.js";
+import { PackageJson } from "../detectors/types.js";
 import { PackageManager } from "../detectors/types.js";
 
 export interface PackageJsonUpdate {
@@ -14,7 +15,7 @@ export interface PackageJsonUpdate {
 export class PackageTransformer {
   constructor(
     private projectPath: string,
-    private packageManager: PackageManager,
+    private packageManager: PackageManager
   ) {}
 
   /**
@@ -22,7 +23,9 @@ export class PackageTransformer {
    */
   async transformForTanStackStart(): Promise<void> {
     const packageJsonPath = path.join(this.projectPath, "package.json");
-    const packageJson = await FileSystem.readJson(packageJsonPath);
+    const packageJson = (await FileSystem.readJson<PackageJson>(
+      packageJsonPath
+    )) as PackageJson;
 
     logger.info("Updating package.json...");
 
