@@ -7,7 +7,9 @@ export class FrameworkDetector {
   /**
    * Detect package manager from lockfiles
    */
-  static async detectPackageManager(projectPath: string): Promise<PackageManager> {
+  static async detectPackageManager(
+    projectPath: string,
+  ): Promise<PackageManager> {
     if (await FileSystem.exists(path.join(projectPath, "bun.lockb"))) {
       return "bun";
     }
@@ -89,12 +91,14 @@ export class FrameworkDetector {
         hasSrcFolder: await FileSystem.exists(path.join(resolvedPath, "src")),
         hasAppFolder: await FileSystem.exists(path.join(resolvedPath, "app")),
         hasAppFolderInSrc: await FileSystem.exists(
-          path.join(resolvedPath, "src", "app")
+          path.join(resolvedPath, "src", "app"),
         ),
-        hasPagesFolder: await FileSystem.exists(path.join(resolvedPath, "pages")),
+        hasPagesFolder: await FileSystem.exists(
+          path.join(resolvedPath, "pages"),
+        ),
         hasNextConfig: false,
         hasViteConfig: await FileSystem.exists(
-          path.join(resolvedPath, "vite.config.ts")
+          path.join(resolvedPath, "vite.config.ts"),
         ),
         packageJsonPath: path.join(resolvedPath, "package.json"),
       };

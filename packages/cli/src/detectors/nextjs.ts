@@ -29,17 +29,23 @@ export class NextJsDetector {
   /**
    * Analyze Next.js project structure
    */
-  static async analyzeStructure(projectPath: string): Promise<ProjectStructure> {
+  static async analyzeStructure(
+    projectPath: string,
+  ): Promise<ProjectStructure> {
     const hasSrcFolder = await FileSystem.exists(path.join(projectPath, "src"));
     const hasAppFolder = await FileSystem.exists(path.join(projectPath, "app"));
     const hasAppFolderInSrc = await FileSystem.exists(
-      path.join(projectPath, "src", "app")
+      path.join(projectPath, "src", "app"),
     );
     const hasPagesFolder =
       (await FileSystem.exists(path.join(projectPath, "pages"))) ||
       (await FileSystem.exists(path.join(projectPath, "src", "pages")));
 
-    const nextConfigFiles = ["next.config.js", "next.config.mjs", "next.config.ts"];
+    const nextConfigFiles = [
+      "next.config.js",
+      "next.config.mjs",
+      "next.config.ts",
+    ];
     let hasNextConfig = false;
 
     for (const configFile of nextConfigFiles) {
@@ -49,7 +55,11 @@ export class NextJsDetector {
       }
     }
 
-    const viteConfigFiles = ["vite.config.js", "vite.config.mjs", "vite.config.ts"];
+    const viteConfigFiles = [
+      "vite.config.js",
+      "vite.config.mjs",
+      "vite.config.ts",
+    ];
     let hasViteConfig = false;
 
     for (const configFile of viteConfigFiles) {

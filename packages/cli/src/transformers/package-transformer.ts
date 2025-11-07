@@ -14,7 +14,7 @@ export interface PackageJsonUpdate {
 export class PackageTransformer {
   constructor(
     private projectPath: string,
-    private packageManager: PackageManager
+    private packageManager: PackageManager,
   ) {}
 
   /**
@@ -72,7 +72,8 @@ export class PackageTransformer {
     }
 
     // Update scripts
-    const currentPort = packageJson.scripts?.dev?.match(/--port (\d+)/)?.[1] || "3000";
+    const currentPort =
+      packageJson.scripts?.dev?.match(/--port (\d+)/)?.[1] || "3000";
 
     packageJson.scripts = {
       ...packageJson.scripts,

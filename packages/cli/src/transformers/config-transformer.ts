@@ -90,7 +90,10 @@ export const getRouter = () => {
    * Create or update tailwind.config.ts
    */
   async createTailwindConfig(): Promise<void> {
-    const tailwindConfigPath = path.join(this.projectPath, "tailwind.config.ts");
+    const tailwindConfigPath = path.join(
+      this.projectPath,
+      "tailwind.config.ts",
+    );
 
     // Only create if it doesn't exist
     if (await FileSystem.exists(tailwindConfigPath)) {
@@ -168,11 +171,7 @@ export default {
 
     for (const cssPath of possiblePaths) {
       if (await FileSystem.exists(cssPath)) {
-        const newPath = path.join(
-          this.projectPath,
-          "src",
-          "styles.css"
-        );
+        const newPath = path.join(this.projectPath, "src", "styles.css");
 
         logger.info(`Renaming globals.css to styles.css`);
         await FileSystem.move(cssPath, newPath);

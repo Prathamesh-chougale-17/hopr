@@ -32,7 +32,7 @@ export class BackupManager {
           "**/.next/**",
           "**/.hopr-backup/**",
         ],
-      }
+      },
     );
 
     for (const file of filesToBackup) {

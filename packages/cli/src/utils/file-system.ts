@@ -72,7 +72,7 @@ export class FileSystem {
    */
   static async findFiles(
     patterns: string | string[],
-    options?: { cwd?: string; ignore?: string[] }
+    options?: { cwd?: string; ignore?: string[] },
   ): Promise<string[]> {
     const defaultIgnore = ["**/node_modules/**", "**/dist/**", "**/.next/**"];
     const ignorePatterns = options?.ignore

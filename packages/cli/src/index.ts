@@ -18,7 +18,9 @@ const program = new Command();
 
 program
   .name("hopr")
-  .description("CLI tool for migrating fullstack web projects between frameworks")
+  .description(
+    "CLI tool for migrating fullstack web projects between frameworks",
+  )
   .version(packageJson.version);
 
 // Migrate command
@@ -26,7 +28,10 @@ program
   .command("migrate")
   .description("Migrate a project from one framework to another")
   .argument("<path>", "Path to the project directory")
-  .option("--from <framework>", "Source framework (auto-detected if not specified)")
+  .option(
+    "--from <framework>",
+    "Source framework (auto-detected if not specified)",
+  )
   .option("--to <framework>", "Target framework (default: tanstack-start)")
   .option("--dry-run", "Preview changes without applying them")
   .option("--no-backup", "Skip creating a backup before migration")

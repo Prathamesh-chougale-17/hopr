@@ -1,4 +1,11 @@
-export type Framework = "nextjs" | "tanstack-start" | "remix" | "sveltekit" | "astro" | "nuxt" | "unknown";
+export type Framework =
+  | "nextjs"
+  | "tanstack-start"
+  | "remix"
+  | "sveltekit"
+  | "astro"
+  | "nuxt"
+  | "unknown";
 
 export type PackageManager = "bun" | "npm" | "yarn" | "pnpm";
 

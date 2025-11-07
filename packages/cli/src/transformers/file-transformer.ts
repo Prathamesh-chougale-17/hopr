@@ -84,7 +84,9 @@ export class FileTransformer {
         const routesDir = appDir.replace(/[/\\]app$/, "/routes");
 
         // Find all page.tsx files in dynamic routes
-        const files = await FileSystem.findFiles("**/[*]/page.tsx", { cwd: appDir });
+        const files = await FileSystem.findFiles("**/[*]/page.tsx", {
+          cwd: appDir,
+        });
 
         for (const file of files) {
           const fullPath = path.join(appDir, file);
@@ -97,7 +99,9 @@ export class FileTransformer {
 
           const newPath = path.join(routesDir, newRelativePath);
 
-          logger.info(`Transforming dynamic route: ${file} → ${newRelativePath}`);
+          logger.info(
+            `Transforming dynamic route: ${file} → ${newRelativePath}`,
+          );
           await FileSystem.move(fullPath, newPath);
         }
 
@@ -120,12 +124,16 @@ export class FileTransformer {
         const routesDir = appDir.replace(/[/\\]app$/, "/routes");
 
         // Find all catch-all routes
-        const files = await FileSystem.findFiles("**/[...*/page.tsx", { cwd: appDir });
+        const files = await FileSystem.findFiles("**/[...*/page.tsx", {
+          cwd: appDir,
+        });
 
         for (const file of files) {
           const fullPath = path.join(appDir, file);
           const dir = FileSystem.dirname(fullPath);
-          const newDir = dir.replace(/[/\\]app[/\\]/, "/routes/").replace(/\[\.\.\..*?\]$/, "");
+          const newDir = dir
+            .replace(/[/\\]app[/\\]/, "/routes/")
+            .replace(/\[\.\.\..*?\]$/, "");
           const newPath = path.join(newDir, "$.tsx");
 
           logger.info(`Transforming catch-all route: ${file} → $.tsx`);
@@ -153,7 +161,7 @@ export class FileTransformer {
         // Find all remaining .tsx and .ts files
         const files = await FileSystem.findFiles("**/*.{tsx,ts}", {
           cwd: appDir,
-          ignore: ["**/node_modules/**", "**/*.d.ts"]
+          ignore: ["**/node_modules/**", "**/*.d.ts"],
         });
 
         for (const file of files) {
@@ -167,7 +175,10 @@ export class FileTransformer {
           const newPath = path.join(routesDir, file);
 
           // Skip if already in routes
-          if (fullPath.includes("/routes/") || fullPath.includes("\\routes\\")) {
+          if (
+            fullPath.includes("/routes/") ||
+            fullPath.includes("\\routes\\")
+          ) {
             continue;
           }
 
@@ -191,12 +202,15 @@ export class FileTransformer {
 
     for (const appDir of appDirs) {
       if (await FileSystem.exists(appDir)) {
-        const srcDir = appDir.includes("/src/") || appDir.includes("\\src\\")
-          ? path.join(this.projectPath, "src")
-          : this.projectPath;
+        const srcDir =
+          appDir.includes("/src/") || appDir.includes("\\src\\")
+            ? path.join(this.projectPath, "src")
+            : this.projectPath;
 
         // Find CSS files
-        const cssFiles = await FileSystem.findFiles("**/*.css", { cwd: appDir });
+        const cssFiles = await FileSystem.findFiles("**/*.css", {
+          cwd: appDir,
+        });
 
         for (const cssFile of cssFiles) {
           const fullPath = path.join(appDir, cssFile);
@@ -249,7 +263,10 @@ export class FileTransformer {
     const srcAppDir = path.join(srcDir, "app");
 
     // If app/ exists at root but src/ doesn't exist, move it
-    if ((await FileSystem.exists(appDir)) && !(await FileSystem.exists(srcDir))) {
+    if (
+      (await FileSystem.exists(appDir)) &&
+      !(await FileSystem.exists(srcDir))
+    ) {
       logger.info("Normalizing project structure: moving app/ to src/app/");
       await FileSystem.ensureDir(srcDir);
       await FileSystem.move(appDir, srcAppDir);

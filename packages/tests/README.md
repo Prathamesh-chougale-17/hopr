@@ -37,12 +37,14 @@ src/
 The test suite covers:
 
 ### Detectors
+
 - ✅ Package manager detection (bun, npm, pnpm, yarn)
 - ✅ Framework detection (Next.js, TanStack Start, Remix, SvelteKit, etc.)
 - ✅ Project structure analysis
 - ✅ App Router vs Pages Router detection
 
 ### Transformers
+
 - ✅ Package.json transformations
 - ✅ Dependency updates
 - ✅ Script updates
@@ -50,6 +52,7 @@ The test suite covers:
 - ✅ Route path conversions
 
 ### Utilities
+
 - ✅ File system operations (read, write, copy, move, remove)
 - ✅ JSON handling
 - ✅ Directory operations
@@ -61,13 +64,13 @@ The test suite covers:
 ### Example Test
 
 ```typescript
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { FileSystem } from '@cli/utils/file-system';
-import path from 'path';
-import fs from 'fs-extra';
-import os from 'os';
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { FileSystem } from "@cli/utils/file-system";
+import path from "path";
+import fs from "fs-extra";
+import os from "os";
 
-describe('MyFeature', () => {
+describe("MyFeature", () => {
   let tempDir: string;
 
   beforeEach(async () => {
@@ -81,7 +84,7 @@ describe('MyFeature', () => {
     await fs.remove(tempDir);
   });
 
-  it('should do something', async () => {
+  it("should do something", async () => {
     // Test implementation
     expect(true).toBe(true);
   });
@@ -99,6 +102,7 @@ describe('MyFeature', () => {
 ## Continuous Integration
 
 Tests run automatically on:
+
 - Every pull request
 - Every push to main branch
 - Before publishing packages

@@ -16,7 +16,7 @@ export interface MigrateCommandOptions {
 
 export async function migrateCommand(
   targetPath: string,
-  options: MigrateCommandOptions
+  options: MigrateCommandOptions,
 ): Promise<void> {
   try {
     // Resolve target path
@@ -51,7 +51,7 @@ export async function migrateCommand(
 
     if (sourceFramework === "unknown") {
       logger.error(
-        "Could not detect framework. Please specify with --from flag."
+        "Could not detect framework. Please specify with --from flag.",
       );
       logger.info("Supported frameworks: nextjs");
       process.exit(1);
@@ -59,7 +59,9 @@ export async function migrateCommand(
 
     if (sourceFramework !== "nextjs") {
       logger.error(`Unsupported source framework: ${sourceFramework}`);
-      logger.info("Currently only Next.js → TanStack Start migration is supported.");
+      logger.info(
+        "Currently only Next.js → TanStack Start migration is supported.",
+      );
       process.exit(1);
     }
 
@@ -68,7 +70,9 @@ export async function migrateCommand(
 
     if (targetFramework !== "tanstack-start") {
       logger.error(`Unsupported target framework: ${targetFramework}`);
-      logger.info("Currently only Next.js → TanStack Start migration is supported.");
+      logger.info(
+        "Currently only Next.js → TanStack Start migration is supported.",
+      );
       process.exit(1);
     }
 
@@ -85,7 +89,7 @@ export async function migrateCommand(
     const migrator = new NextJsToTanStackMigrator(
       projectPath,
       detection,
-      migrationOptions
+      migrationOptions,
     );
 
     // Validate migration

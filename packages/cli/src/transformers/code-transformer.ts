@@ -28,7 +28,7 @@ export class CodeTransformer {
 
     // Add necessary imports
     importsToAdd.add(
-      `import { Outlet, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";`
+      `import { Outlet, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";`,
     );
 
     traverse(ast, {
@@ -121,7 +121,7 @@ function RootLayout() {
    */
   static async transformRoutePage(
     filePath: string,
-    routePath: string
+    routePath: string,
   ): Promise<void> {
     logger.info(`Transforming code in: ${filePath}`);
 
@@ -147,14 +147,14 @@ function RootLayout() {
         defaultExportRegex,
         `export const Route = createFileRoute("${routePath}")({
   component: ${componentName},
-});\n\nfunction ${componentName}`
+});\n\nfunction ${componentName}`,
       );
     }
 
     // Transform Next.js Link to TanStack Link
     transformed = transformed.replace(
       /import\s+Link\s+from\s+["']next\/link["']/g,
-      'import { Link } from "@tanstack/react-router"'
+      'import { Link } from "@tanstack/react-router"',
     );
 
     // Transform href to to prop
@@ -163,7 +163,7 @@ function RootLayout() {
     // Transform Next.js Image to regular img
     transformed = transformed.replace(
       /import\s+Image\s+from\s+["']next\/image["']/g,
-      "// import Image from 'next/image' // TODO: Replace with <img> or @unpic/react"
+      "// import Image from 'next/image' // TODO: Replace with <img> or @unpic/react",
     );
 
     // Format with prettier
@@ -187,9 +187,10 @@ function RootLayout() {
     // e.g., src/routes/about.tsx → /about
     // e.g., src/routes/posts/$id.tsx → /posts/$id
 
-    const routesIndex = filePath.indexOf("/routes/") !== -1
-      ? filePath.indexOf("/routes/")
-      : filePath.indexOf("\\routes\\");
+    const routesIndex =
+      filePath.indexOf("/routes/") !== -1
+        ? filePath.indexOf("/routes/")
+        : filePath.indexOf("\\routes\\");
 
     if (routesIndex === -1) {
       return "/";
@@ -235,9 +236,10 @@ function RootLayout() {
 
     // Remove Next.js specific options
     if (tsconfig.compilerOptions.plugins) {
-      tsconfig.compilerOptions.plugins = tsconfig.compilerOptions.plugins.filter(
-        (plugin: any) => plugin.name !== "next"
-      );
+      tsconfig.compilerOptions.plugins =
+        tsconfig.compilerOptions.plugins.filter(
+          (plugin: any) => plugin.name !== "next",
+        );
       if (tsconfig.compilerOptions.plugins.length === 0) {
         delete tsconfig.compilerOptions.plugins;
       }
@@ -252,7 +254,7 @@ function RootLayout() {
     // Remove next-env.d.ts from includes
     if (tsconfig.include) {
       tsconfig.include = tsconfig.include.filter(
-        (item: string) => item !== "next-env.d.ts"
+        (item: string) => item !== "next-env.d.ts",
       );
     }
 

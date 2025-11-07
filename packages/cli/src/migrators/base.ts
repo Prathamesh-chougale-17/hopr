@@ -19,7 +19,7 @@ export abstract class BaseMigrator {
   constructor(
     protected projectPath: string,
     protected detection: DetectionResult,
-    protected options: MigrationOptions = {}
+    protected options: MigrationOptions = {},
   ) {}
 
   /**

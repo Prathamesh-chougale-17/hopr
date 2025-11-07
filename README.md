@@ -21,7 +21,9 @@ Global installation:
 
 \`\`\`bash
 npm install -g hopr
+
 # or
+
 bun add -g hopr
 \`\`\`
 
@@ -34,13 +36,17 @@ npx hopr@latest migrate ./my-project
 ## Quick Start
 
 \`\`\`bash
+
 # Detect framework
+
 hopr detect ./my-project
 
 # Preview migration
+
 hopr migrate ./my-project --dry-run
 
 # Run migration
+
 hopr migrate ./my-project
 \`\`\`
 

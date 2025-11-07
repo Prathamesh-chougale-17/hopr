@@ -19,6 +19,7 @@ bun changeset
 ```
 
 This will prompt you to:
+
 1. Select which packages have changed
 2. Choose the type of change (major, minor, patch)
 3. Write a summary of the changes
@@ -32,6 +33,7 @@ bun changeset version
 ```
 
 This will:
+
 - Update package.json versions
 - Generate/update CHANGELOG.md files
 - Delete consumed changeset files
@@ -45,6 +47,7 @@ bun changeset publish
 ```
 
 This will:
+
 - Build all packages
 - Publish to npm registry
 - Create git tags for published versions
@@ -52,6 +55,7 @@ This will:
 ## CI/CD Integration
 
 The GitHub Actions workflow automatically:
+
 - Creates a PR with version bumps when changesets are added
 - Publishes packages when the version PR is merged
 - Validates changesets on every PR
