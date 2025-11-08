@@ -175,12 +175,10 @@ export class FileTransformer {
 
   /**
    * Normalize project structure to use src/ folder
-   * If app/ exists at root without src/, move ONLY app/ to src/app/
-   * Then move other folders except public to src/
+   * Move all folders except public and build artifacts to src/
    */
   async normalizeToSrcStructure(): Promise<void> {
     const srcDir = path.join(this.projectPath, "src");
-    const appDir = path.join(this.projectPath, "app");
 
     // If src/ already exists, skip normalization
     if (await FileSystem.exists(srcDir)) {
@@ -193,14 +191,7 @@ export class FileTransformer {
     // Create src directory
     await FileSystem.ensureDir(srcDir);
 
-    // If app/ exists at root, move it to src/app/ first
-    if (await FileSystem.exists(appDir)) {
-      const srcAppDir = path.join(srcDir, "app");
-      logger.info("  Moving app/ → src/app/");
-      await FileSystem.move(appDir, srcAppDir);
-    }
-
-    // Folders to exclude from moving to src
+    // Folders to exclude from moving to src (only public and build/config artifacts)
     const excludedFolders = [
       'public',
       'node_modules',
@@ -212,7 +203,10 @@ export class FileTransformer {
       'dist',
       'build',
       'coverage',
-      'app' // Already moved above
+      '.husky',
+      '.vscode',
+      '.idea',
+      'src'
     ];
 
     // Read all items in the project root
@@ -228,11 +222,13 @@ export class FileTransformer {
 
       const stats = await FileSystem.stat(itemPath);
 
-      // Only move directories, and skip excluded ones and src itself
-      if (stats.isDirectory() && !excludedFolders.includes(item) && item !== 'src') {
+      // Only move directories, and skip excluded ones
+      if (stats.isDirectory() && !excludedFolders.includes(item)) {
         const destPath = path.join(srcDir, item);
         logger.info(`  Moving ${item}/ → src/${item}/`);
-        await FileSystem.move(itemPath, destPath);
+        // Use copy + remove for more reliable directory moving on Windows
+        await FileSystem.copy(itemPath, destPath);
+        await FileSystem.remove(itemPath);
       }
     }
 
