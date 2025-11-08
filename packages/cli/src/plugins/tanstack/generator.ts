@@ -54,29 +54,28 @@ export async function transformToTanStackStart(
     "postcss.config.mjs",
   ];
 
-  // Add original source files to delete list
-  for (const route of structure.routes) {
-    if (route.sourcePath && !filesToDelete.includes(route.sourcePath)) {
-      filesToDelete.push(route.sourcePath);
-    }
-  }
-
-  // Delete old app directory after moving contents to src/app
-  if (structure.appDir && !structure.useSrc) {
-    filesToDelete.push(structure.appDir);
-  }
-
   // Files and directories to move to src/
   const filesToMove: Array<{ from: string; to: string }> = [];
   const directoriesToMove: Array<{ from: string; to: string }> = [];
 
-  // Move app/globals.css and app/favicon.ico to src/app/
+  // Per migration guide: Move entire app directory to src/app if not using src
   const appDir = structure.appDir;
-  if (appDir) {
-    filesToMove.push(
-      { from: `${appDir}/globals.css`, to: 'src/app/globals.css' },
-      { from: `${appDir}/favicon.ico`, to: 'src/app/favicon.ico' }
-    );
+  if (appDir && !structure.useSrc) {
+    // Move the whole app directory to src/app
+    directoriesToMove.push({ from: appDir, to: 'src/app' });
+  }
+
+  // Add original source files to delete list (update paths after move)
+  for (const route of structure.routes) {
+    if (route.sourcePath && !filesToDelete.includes(route.sourcePath)) {
+      // If we moved app/ to src/app/, update the delete paths
+      if (appDir && !structure.useSrc && route.sourcePath.startsWith(appDir)) {
+        const newPath = route.sourcePath.replace(appDir, 'src/app');
+        filesToDelete.push(newPath);
+      } else {
+        filesToDelete.push(route.sourcePath);
+      }
+    }
   }
 
   // Move components and lib directories to src/
@@ -123,8 +122,8 @@ async function transformRoute(
     case "layout": {
       // Only transform root layout
       if (pattern === "/") {
-        // TanStack Start uses src/routes/__root.tsx
-        targetPath = "src/routes/__root.tsx";
+        // Per migration guide: src/app/__root.tsx
+        targetPath = "src/app/__root.tsx";
         transformedContent = transformLayoutToRoot(content);
       } else {
         // Nested layouts are not directly supported in the same way
@@ -134,7 +133,7 @@ async function transformRoute(
     }
 
     case "page": {
-      // Convert to src/routes/ structure
+      // Per migration guide: routes go in src/app/
       targetPath = convertPagePath(pattern, params, isCatchAll);
       const routePath = convertToTanStackRoutePath(pattern, params, isCatchAll);
       transformedContent = transformPageToRoute(content, routePath);
@@ -142,8 +141,8 @@ async function transformRoute(
     }
 
     case "api": {
-      // API routes need special handling
-      targetPath = path.join("src/routes/api", normalizePath(pattern) + ".ts");
+      // Per migration guide: src/app/api/endpoint.ts
+      targetPath = path.join("src/app/api", normalizePath(pattern) + ".ts");
       transformedContent = transformApiRoute(content);
       break;
     }
@@ -167,7 +166,7 @@ async function transformRoute(
 
 /**
  * Convert Next.js page path to TanStack Start path
- * All routes go into src/routes/
+ * Per migration guide: routes go in src/app/
  */
 function convertPagePath(
   pattern: string,
@@ -175,12 +174,12 @@ function convertPagePath(
   isCatchAll: boolean | undefined
 ): string {
   if (pattern === "/") {
-    return "src/routes/index.tsx";
+    return "src/app/index.tsx";
   }
 
   let segments = pattern.split("/").filter(Boolean);
 
-  // Handle dynamic segments
+  // Handle dynamic segments per migration guide
   segments = segments.map((segment) => {
     if (segment.startsWith("[...") && segment.endsWith("]")) {
       // Catch-all: [...slug] -> $.tsx
@@ -193,11 +192,9 @@ function convertPagePath(
     return segment;
   });
 
-  const fileName = segments.pop() || "index";
-  const filePath =
-    segments.length > 0
-      ? path.join("src/routes", ...segments, `${fileName}.tsx`)
-      : path.join("src/routes", `${fileName}.tsx`);
+  // Per guide: /posts -> src/app/posts.tsx (not posts/index.tsx)
+  const fileName = segments.join(".");
+  const filePath = path.join("src/app", `${fileName}.tsx`);
 
   return normalizePath(filePath);
 }
@@ -247,7 +244,7 @@ export const Route = createFileRoute('/api/endpoint')({
 }
 
 /**
- * Generate vite.config.ts
+ * Generate vite.config.ts per migration guide
  */
 function generateViteConfig(structure: ProjectStructure): {
   path: string;
@@ -255,11 +252,11 @@ function generateViteConfig(structure: ProjectStructure): {
 } {
   return {
     path: "vite.config.ts",
-    content: `import { defineConfig } from 'vite'
-import { tanstackStart } from '@tanstack/start/vite'
-import viteReact from '@vitejs/plugin-react'
-import tsconfigPaths from 'vite-tsconfig-paths'
-${structure.metadata?.hasTailwind ? "import tailwindcss from '@tailwindcss/vite'\n" : ""}
+    content: `import { defineConfig } from "vite";
+import { tanstackStart } from "@tanstack/start/plugin/vite";
+import viteReact from "@vitejs/plugin-react";
+import tsconfigPaths from "vite-tsconfig-paths";
+${structure.metadata?.hasTailwind ? 'import tailwindcss from "@tailwindcss/vite";\n' : ""}
 export default defineConfig({
   server: {
     port: 3000,
@@ -267,10 +264,15 @@ export default defineConfig({
   plugins: [
     ${structure.metadata?.hasTailwind ? "tailwindcss()," : ""}
     tsconfigPaths(),
-    tanstackStart(),
+    tanstackStart({
+      srcDirectory: "src",
+      router: {
+        routesDirectory: "app",
+      },
+    }),
     viteReact(),
   ],
-})
+});
 `,
   };
 }

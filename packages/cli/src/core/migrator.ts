@@ -172,6 +172,17 @@ export class Migrator {
       }
     }
 
+    // Delete old source files before writing new ones
+    for (const file of output.filesToDelete) {
+      const filePath = path.join(this.options.sourceDir, file)
+      try {
+        await remove(filePath)
+        showFileSummary('delete', file)
+      } catch {
+        // Ignore if file doesn't exist
+      }
+    }
+
     // Write transformed routes
     for (const route of output.routes) {
       const filePath = path.join(this.options.sourceDir, route.targetPath)
@@ -232,15 +243,8 @@ export class Migrator {
   }
 
   private async cleanup(output: TransformedOutput): Promise<void> {
-    for (const file of output.filesToDelete) {
-      const filePath = path.join(this.options.sourceDir, file)
-      try {
-        await remove(filePath)
-        showFileSummary('delete', file)
-      } catch {
-        // Ignore if file doesn't exist
-      }
-    }
+    // Cleanup is now done in generateFiles before writing new files
+    // This method is kept for backwards compatibility but doesn't do anything
   }
 
   private displayDryRun(output: TransformedOutput): void {

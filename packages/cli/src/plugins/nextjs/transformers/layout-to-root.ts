@@ -140,9 +140,9 @@ export function transformLayoutToRoot(content: string): string {
       if (source === 'next' || source.startsWith('next/font')) {
         path.remove()
       }
-      // Update globals.css path to be relative to routes directory (src/routes -> src/app)
+      // Update globals.css path per migration guide (import with ?url)
       if (source === './globals.css') {
-        path.node.source.value = '../app/globals.css'
+        path.node.source.value = './globals.css?url'
       }
     },
   })
