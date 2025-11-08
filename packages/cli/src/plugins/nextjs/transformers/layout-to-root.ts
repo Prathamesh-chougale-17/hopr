@@ -170,9 +170,11 @@ export function transformLayoutToRoot(content: string): string {
       if (source === "next" || source.startsWith("next/font")) {
         path.remove();
       }
-      // Update globals.css path per migration guide (import with ?url)
+      // Update globals.css to use default import with ?url
       if (source === "./globals.css") {
         path.node.source.value = "./globals.css?url";
+        // Change to default import: import appCss from "./globals.css?url"
+        path.node.specifiers = [t.importDefaultSpecifier(t.identifier("appCss"))];
       }
     },
   });

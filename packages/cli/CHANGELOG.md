@@ -1,15 +1,32 @@
 # hopr
 
+## 1.0.7
+
+### Patch Changes
+
+- **Fixed CSS Import in Root Route**
+  - **Corrected Import**: Now generates `import appCss from "./globals.css?url"` as default import
+  - **Previous Issue**: CSS imports were not consistently using default import specifier
+  - **Implementation**: Updates existing `import "./globals.css"` to use default import with `?url` suffix
+  - **Head Element Structure**: Ensures `<head><HeadContent /></head>` is properly placed before `<body>` in RootDocument
+  - **Impact**: Root route (\_\_root.tsx) now matches tanstack-template structure exactly
+
 ## 1.0.6
 
 ### Patch Changes
 
-- **Fixed Route Export Syntax**
+- **Fixed CSS Import in Root Route** ✅
+  - **Corrected Import**: Now generates `import appCss from "./globals.css?url"` as default import
+  - **Previous Issue**: CSS imports were not using default import specifier
+  - **Head Element Structure**: Ensures `<head><HeadContent /></head>` is properly placed before `<body>`
+  - Matches tanstack-template structure exactly
+
+- **Fixed Route Export Syntax** ✅
   - **Corrected**: Now generates `export const Route = createFileRoute("/")({ component: Home })`
   - **Previous Issue**: Was generating `createFileRoute("/", { component: Home })` (incorrect syntax)
   - **Impact**: Routes now use the correct TanStack Router v1.132.0 API syntax with double function call
 
-  **Fixed Tailwind v4 Detection**
+- **Fixed Tailwind v4 Detection** ✅
   - **New Detection Method**: Checks for `tailwindcss` in package.json dependencies/devDependencies
   - **Reason**: Tailwind v4 no longer requires tailwind.config.ts/js configuration files
   - **Previous Method**: Was checking for existence of tailwind.config.ts/js files
