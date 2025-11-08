@@ -1,5 +1,31 @@
 # hopr
 
+## 0.2.2
+
+### Patch Changes
+
+- ## Fix: Proper src/ Structure Normalization
+
+  ### Critical Fix
+  - **Structure normalization order**: Now correctly moves `app/` to `src/app/` FIRST before moving other folders
+  - This ensures the migration guide's expected structure is achieved: `src/app/` directory
+
+  ### Before This Fix
+
+  ```
+  app/ → src/components/ (wrong! moved everything at once)
+  components/ → src/app/
+  ```
+
+  ### After This Fix
+
+  ```
+  app/ → src/app/ (correct! app moved first)
+  components/ → src/components/
+  ```
+
+  This matches the official TanStack Start migration guide structure requirements.
+
 ## 0.2.1
 
 ### Patch Changes
