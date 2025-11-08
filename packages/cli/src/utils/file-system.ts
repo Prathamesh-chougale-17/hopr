@@ -49,7 +49,8 @@ export class FileSystem {
    * Copy a file or directory
    */
   static async copy(src: string, dest: string): Promise<void> {
-    await fs.copy(src, dest);
+    await fs.ensureDir(path.dirname(dest));
+    await fs.copy(src, dest, { overwrite: true });
   }
 
   /**

@@ -225,10 +225,22 @@ export class FileTransformer {
       // Only move directories, and skip excluded ones
       if (stats.isDirectory() && !excludedFolders.includes(item)) {
         const destPath = path.join(srcDir, item);
-        logger.info(`  Moving ${item}/ → src/${item}/`);
-        // Use copy + remove for more reliable directory moving on Windows
-        await FileSystem.copy(itemPath, destPath);
-        await FileSystem.remove(itemPath);
+        logger.info(`  Copying ${item}/ → src/${item}/`);
+
+        try {
+          // Use copy + remove for more reliable directory moving on Windows
+          await FileSystem.copy(itemPath, destPath);
+
+          // Verify the copy was successful before removing
+          if (await FileSystem.exists(destPath)) {
+            logger.info(`  Removing original ${item}/ folder`);
+            await FileSystem.remove(itemPath);
+          } else {
+            logger.warn(`  Failed to copy ${item}/, keeping original`);
+          }
+        } catch (error) {
+          logger.error(`  Error moving ${item}/: ${error instanceof Error ? error.message : String(error)}`);
+        }
       }
     }
 

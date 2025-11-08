@@ -1,5 +1,17 @@
 # hopr
 
+## 0.2.4
+
+### Patch Changes
+
+- Fix directory migration in normalizeToSrcStructure to properly move all folders (and their contents) except public to src/. Changes include:
+  - Switched from fs.move() to copy + remove approach for better cross-platform support, especially on Windows
+  - Added verification step to ensure copy completed before removing source
+  - Enhanced error handling and logging for better debugging
+  - Updated FileSystem.copy() to ensure parent directories exist and use overwrite option
+
+  This ensures all project folders (app, components, lib, etc.) and their files are successfully moved to the src/ directory during migration.
+
 ## 0.2.3
 
 ### Patch Changes
