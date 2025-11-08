@@ -254,20 +254,51 @@ export class FileTransformer {
 
   /**
    * Normalize project structure to use src/ folder
+   * Moves all folders except public to src/
    */
   async normalizeToSrcStructure(): Promise<void> {
-    const appDir = path.join(this.projectPath, "app");
     const srcDir = path.join(this.projectPath, "src");
-    const srcAppDir = path.join(srcDir, "app");
 
-    // If app/ exists at root but src/ doesn't exist, move it
-    if (
-      (await FileSystem.exists(appDir)) &&
-      !(await FileSystem.exists(srcDir))
-    ) {
-      logger.info("Normalizing project structure: moving app/ to src/app/");
-      await FileSystem.ensureDir(srcDir);
-      await FileSystem.move(appDir, srcAppDir);
+    // If src/ already exists, skip normalization
+    if (await FileSystem.exists(srcDir)) {
+      logger.info("src/ folder already exists, skipping normalization");
+      return;
     }
+
+    logger.info("Normalizing project structure: moving folders to src/");
+
+    // Create src directory
+    await FileSystem.ensureDir(srcDir);
+
+    // Folders to exclude from moving to src
+    const excludedFolders = [
+      'public',
+      'node_modules',
+      '.git',
+      '.next',
+      '.output',
+      '.turbo',
+      '.nitro',
+      'dist',
+      'build',
+      'coverage'
+    ];
+
+    // Read all items in the project root
+    const items = await FileSystem.readDir(this.projectPath);
+
+    for (const item of items) {
+      const itemPath = path.join(this.projectPath, item);
+      const stats = await FileSystem.stat(itemPath);
+
+      // Only move directories, and skip excluded ones and src itself
+      if (stats.isDirectory() && !excludedFolders.includes(item) && item !== 'src') {
+        const destPath = path.join(srcDir, item);
+        logger.info(`  Moving ${item}/ → src/${item}/`);
+        await FileSystem.move(itemPath, destPath);
+      }
+    }
+
+    logger.success("Project structure normalized to src/ folder");
   }
 }

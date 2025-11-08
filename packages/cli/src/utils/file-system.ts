@@ -102,6 +102,20 @@ export class FileSystem {
   }
 
   /**
+   * Read directory contents
+   */
+  static async readDir(dirPath: string): Promise<string[]> {
+    return await fs.readdir(dirPath);
+  }
+
+  /**
+   * Get file/directory stats
+   */
+  static async stat(filePath: string): Promise<fs.Stats> {
+    return await fs.stat(filePath);
+  }
+
+  /**
    * Check if path is a directory
    */
   static async isDirectory(filePath: string): Promise<boolean> {

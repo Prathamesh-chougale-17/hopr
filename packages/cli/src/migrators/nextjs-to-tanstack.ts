@@ -170,32 +170,27 @@ export class NextJsToTanStackMigrator extends BaseMigrator {
         }
       }
 
-      // Step 7: Update TypeScript config
-      currentStep++;
-      logger.step(
-        currentStep,
-        totalSteps,
-        "Updating TypeScript configuration..."
-      );
-      if (!this.options.dryRun) {
-        await CodeTransformer.transformTsConfig(this.projectPath);
-        this.result.filesModified.push("tsconfig.json");
-      }
-
-      // Step 8: Create configuration files
+      // Step 7: Create configuration files
       currentStep++;
       logger.step(currentStep, totalSteps, "Creating configuration files...");
       if (!this.options.dryRun) {
         const configTransformer = new ConfigTransformer(this.projectPath);
+        await configTransformer.createTsConfig();
         await configTransformer.createViteConfig();
         await configTransformer.createRouterConfig();
         await configTransformer.createTailwindConfig();
         await configTransformer.renameGlobalCss();
         await configTransformer.updateGitignore();
 
+        this.result.filesCreated.push("tsconfig.json");
         this.result.filesCreated.push("vite.config.ts");
         this.result.filesCreated.push("src/router.tsx");
       }
+
+      // Step 8: Remove old TypeScript config (if exists)
+      currentStep++;
+      logger.step(currentStep, totalSteps, "Cleaning up old configs...");
+      // This step is now handled by creating new config above
 
       // Step 9: Delete Next.js files
       currentStep++;

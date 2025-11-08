@@ -66,6 +66,7 @@
   "devDependencies": {
     "@repo/eslint-config": "*",
     "@repo/typescript-config": "*",
+    "@types/fs-extra": "^11.0.4",
     "@types/node": "^22.15.3",
     "@types/prompts": "^2.4.9",
     "eslint": "^9.39.1",

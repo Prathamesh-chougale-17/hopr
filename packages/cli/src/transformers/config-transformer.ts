@@ -160,6 +160,47 @@ export default {
   }
 
   /**
+   * Create/Update tsconfig.json for TanStack Start
+   */
+  async createTsConfig(): Promise<void> {
+    const tsconfigPath = path.join(this.projectPath, "tsconfig.json");
+
+    logger.info("Creating tsconfig.json for TanStack Start...");
+
+    const config = {
+      include: ["**/*.ts", "**/*.tsx"],
+      compilerOptions: {
+        target: "ES2022",
+        jsx: "react-jsx",
+        module: "ESNext",
+        lib: ["ES2022", "DOM", "DOM.Iterable"],
+        types: ["vite/client"],
+
+        /* Bundler mode */
+        moduleResolution: "bundler",
+        allowImportingTsExtensions: true,
+        verbatimModuleSyntax: false,
+        noEmit: true,
+
+        /* Linting */
+        skipLibCheck: true,
+        strict: true,
+        noUnusedLocals: true,
+        noUnusedParameters: true,
+        noFallthroughCasesInSwitch: true,
+        noUncheckedSideEffectImports: true,
+        baseUrl: ".",
+        paths: {
+          "@/*": ["./src/*"],
+        },
+      },
+    };
+
+    await FileSystem.writeJson(tsconfigPath, config);
+    logger.success("tsconfig.json created");
+  }
+
+  /**
    * Rename globals.css to styles.css
    */
   async renameGlobalCss(): Promise<void> {
