@@ -6,7 +6,7 @@ export type PackageManager = "npm" | "yarn" | "pnpm" | "bun";
  * Detect package manager used in project
  */
 export async function detectPackageManager(
-  projectPath: string
+  projectPath: string,
 ): Promise<PackageManager> {
   try {
     const result = await whichPm(projectPath);

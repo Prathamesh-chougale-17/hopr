@@ -15,7 +15,7 @@ import { normalizePath } from "../../utils/index.js";
  * Transform Next.js structure to TanStack Start
  */
 export async function transformToTanStackStart(
-  structure: ProjectStructure
+  structure: ProjectStructure,
 ): Promise<TransformedOutput> {
   const transformedRoutes: TransformedRoute[] = [];
   const warnings: string[] = [];
@@ -62,7 +62,7 @@ export async function transformToTanStackStart(
   const appDir = structure.appDir;
   if (appDir && !structure.useSrc) {
     // Move the whole app directory to src/app
-    directoriesToMove.push({ from: appDir, to: 'src/app' });
+    directoriesToMove.push({ from: appDir, to: "src/app" });
   }
 
   // Add original source files to delete list (update paths after move)
@@ -70,7 +70,7 @@ export async function transformToTanStackStart(
     if (route.sourcePath && !filesToDelete.includes(route.sourcePath)) {
       // If we moved app/ to src/app/, update the delete paths
       if (appDir && !structure.useSrc && route.sourcePath.startsWith(appDir)) {
-        const newPath = route.sourcePath.replace(appDir, 'src/app');
+        const newPath = route.sourcePath.replace(appDir, "src/app");
         filesToDelete.push(newPath);
       } else {
         filesToDelete.push(route.sourcePath);
@@ -80,8 +80,8 @@ export async function transformToTanStackStart(
 
   // Move components and lib directories to src/
   directoriesToMove.push(
-    { from: 'components', to: 'src/components' },
-    { from: 'lib', to: 'src/lib' }
+    { from: "components", to: "src/components" },
+    { from: "lib", to: "src/lib" },
   );
 
   return {
@@ -109,7 +109,7 @@ export async function transformToTanStackStart(
  */
 async function transformRoute(
   route: RouteInfo,
-  structure: ProjectStructure
+  structure: ProjectStructure,
 ): Promise<TransformedRoute | null> {
   const { type, sourcePath, pattern, params, isCatchAll, content } = route;
 
@@ -171,7 +171,7 @@ async function transformRoute(
 function convertPagePath(
   pattern: string,
   params: string[] | undefined,
-  isCatchAll: boolean | undefined
+  isCatchAll: boolean | undefined,
 ): string {
   if (pattern === "/") {
     return "src/app/index.tsx";
@@ -205,7 +205,7 @@ function convertPagePath(
 function convertToTanStackRoutePath(
   pattern: string,
   params: string[] | undefined,
-  isCatchAll: boolean | undefined
+  isCatchAll: boolean | undefined,
 ): string {
   if (pattern === "/") return "/";
 
@@ -328,7 +328,7 @@ function generateTsConfig(structure: ProjectStructure): {
         include: ["src"],
       },
       null,
-      2
+      2,
     ),
   };
 }
@@ -337,7 +337,7 @@ function generateTsConfig(structure: ProjectStructure): {
  * Generate dependencies
  */
 function generateDependencies(
-  structure: ProjectStructure
+  structure: ProjectStructure,
 ): Record<string, string> {
   return {
     "@tanstack/react-router": "^1.98.0",
@@ -353,7 +353,7 @@ function generateDependencies(
  * Generate dev dependencies
  */
 function generateDevDependencies(
-  structure: ProjectStructure
+  structure: ProjectStructure,
 ): Record<string, string> {
   const devDeps: Record<string, string> = {
     "@tanstack/router-devtools": "^1.98.0",

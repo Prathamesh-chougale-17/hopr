@@ -112,6 +112,7 @@ bun run release
 The `hopr` CLI is a **published npm package** (not a workspace package). It's the main product of this repository and automates framework migrations.
 
 **Installation:**
+
 ```bash
 npm install -g hopr
 # or run without installing
@@ -119,6 +120,7 @@ npx hopr@latest migrate ./my-project
 ```
 
 **Key Features:**
+
 - Auto-detects frameworks (Next.js, TanStack Start) and package managers
 - Safe by default: Creates backups in `.hopr-backup/`
 - AST-based code transformations using Babel
@@ -127,11 +129,13 @@ npx hopr@latest migrate ./my-project
 
 **Testing hopr locally:**
 The CLI package has been removed from the workspace. To test local changes to the CLI:
+
 1. Clone the hopr CLI repository separately
 2. Build and publish to npm (or use `npm link`)
 3. Install globally or use `npx` to test
 
 **Version Management:**
+
 - Uses Changesets for version management
 - See [RELEASE_GUIDE.md](RELEASE_GUIDE.md) for publishing workflow
 - See [DEPRECATION.md](DEPRECATION.md) for information about deprecated versions

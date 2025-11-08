@@ -55,8 +55,8 @@ hopr migrate --to tanstack-start --backup-dir ./my-backup
 
 ## Supported Migrations
 
-| Source | Target | Status |
-|--------|--------|--------|
+| Source               | Target         | Status       |
+| -------------------- | -------------- | ------------ |
 | Next.js (App Router) | TanStack Start | ✅ Supported |
 
 ## Migration Features

@@ -6,7 +6,7 @@ const program = new Command();
 program
   .name("hopr")
   .description(
-    "A powerful CLI tool for migrating fullstack web projects between frameworks"
+    "A powerful CLI tool for migrating fullstack web projects between frameworks",
   )
   .version("1.0.0");
 

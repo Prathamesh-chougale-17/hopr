@@ -1,11 +1,13 @@
 # hopr CLI - Development Plan
 
 ## Project Overview
+
 Build a cross-platform CLI tool that migrates fullstack web projects between frameworks (starting with Next.js → TanStack Start).
 
 ## Architecture
 
 ### Core Structure
+
 ```
 packages/
   └── hopr/                   # Main CLI package (published to npm)
@@ -21,6 +23,7 @@ packages/
 ```
 
 ### Technology Stack
+
 - **Language**: TypeScript (ES modules)
 - **CLI Framework**: commander.js (simple, popular)
 - **AST Parsing**: @babel/parser, @babel/traverse, recast
@@ -32,6 +35,7 @@ packages/
 ## Implementation Phases
 
 ### Phase 1: Project Setup ✓
+
 - [x] Create packages/hopr directory structure
 - [x] Initialize package.json with proper metadata
 - [x] Configure TypeScript with ES modules
@@ -39,6 +43,7 @@ packages/
 - [x] Add to workspace
 
 ### Phase 2: Core Framework
+
 - [ ] Create type definitions for framework adapters
 - [ ] Implement project detection utilities
 - [ ] Build configuration loader (hopr.config.json)
@@ -47,7 +52,8 @@ packages/
 - [ ] Build diff viewer
 
 ### Phase 3: Next.js Plugin
-- [ ] Framework detection (next.config.*, package.json)
+
+- [ ] Framework detection (next.config.\*, package.json)
 - [ ] Project structure analyzer:
   - Detect app/src structure
   - Map routes (app/page.tsx, app/[slug]/page.tsx)
@@ -61,8 +67,9 @@ packages/
 - [ ] File structure mapping
 
 ### Phase 4: TanStack Start Plugin
+
 - [ ] Code generation for:
-  - __root.tsx from layout.tsx
+  - \_\_root.tsx from layout.tsx
   - index.tsx from page.tsx
   - Dynamic routes ($param.tsx)
   - Catch-all routes ($.tsx)
@@ -73,6 +80,7 @@ packages/
 - [ ] Configure Tailwind CSS v4
 
 ### Phase 5: CLI Commands
+
 - [ ] `hopr detect` - Detect current framework
 - [ ] `hopr migrate --to <framework>` - Run migration
 - [ ] `hopr migrate --dry` - Preview changes
@@ -80,6 +88,7 @@ packages/
 - [ ] Progress logging and user confirmations
 
 ### Phase 6: Testing & Polish
+
 - [ ] Add unit tests for transformers
 - [ ] Integration tests with sample projects
 - [ ] Error handling and validation
@@ -87,6 +96,7 @@ packages/
 - [ ] Migration report generation
 
 ### Phase 7: Publishing
+
 - [ ] Configure npm publish settings
 - [ ] Add bin entry to package.json
 - [ ] Create README with examples
@@ -96,6 +106,7 @@ packages/
 ## Key Features
 
 ### Must-Have (v1.0.0)
+
 - [x] Automatic framework detection
 - [ ] Next.js → TanStack Start migration
 - [ ] Dry-run mode
@@ -105,6 +116,7 @@ packages/
 - [ ] User confirmations
 
 ### Nice-to-Have (Future)
+
 - [ ] Remix plugin
 - [ ] SvelteKit plugin
 - [ ] Incremental migration
@@ -114,25 +126,26 @@ packages/
 
 ## Migration Mapping (Next.js → TanStack Start)
 
-| Next.js | TanStack Start |
-|---------|---------------|
-| `app/layout.tsx` | `app/__root.tsx` |
-| `app/page.tsx` | `app/index.tsx` |
-| `app/about/page.tsx` | `app/about.tsx` |
-| `app/posts/[slug]/page.tsx` | `app/posts/$slug.tsx` |
-| `app/posts/[...slug]/page.tsx` | `app/posts/$.tsx` |
-| `app/api/hello/route.ts` | `app/api/hello.ts` |
-| `export const metadata` | `Route.head()` |
-| `async function Page()` | `Route.loader` + `Route.useLoaderData()` |
-| `params.slug` | `Route.useParams().slug` |
-| `searchParams.page` | `Route.useSearch().page` |
-| `'use server'` | `createServerFn()` |
-| `next/link` | `@tanstack/react-router` |
-| `next/image` | `@unpic/react` |
+| Next.js                        | TanStack Start                           |
+| ------------------------------ | ---------------------------------------- |
+| `app/layout.tsx`               | `app/__root.tsx`                         |
+| `app/page.tsx`                 | `app/index.tsx`                          |
+| `app/about/page.tsx`           | `app/about.tsx`                          |
+| `app/posts/[slug]/page.tsx`    | `app/posts/$slug.tsx`                    |
+| `app/posts/[...slug]/page.tsx` | `app/posts/$.tsx`                        |
+| `app/api/hello/route.ts`       | `app/api/hello.ts`                       |
+| `export const metadata`        | `Route.head()`                           |
+| `async function Page()`        | `Route.loader` + `Route.useLoaderData()` |
+| `params.slug`                  | `Route.useParams().slug`                 |
+| `searchParams.page`            | `Route.useSearch().page`                 |
+| `'use server'`                 | `createServerFn()`                       |
+| `next/link`                    | `@tanstack/react-router`                 |
+| `next/image`                   | `@unpic/react`                           |
 
 ## Dependencies to Install
 
 ### Core
+
 - commander
 - picocolors
 - ora
@@ -141,6 +154,7 @@ packages/
 - which-pm
 
 ### AST/Parsing
+
 - @babel/parser
 - @babel/traverse
 - @babel/types
@@ -148,12 +162,14 @@ packages/
 - recast
 
 ### Dev
+
 - @types/node
-- @types/babel__traverse
+- @types/babel\_\_traverse
 - @types/fs-extra
 - tsup (for building)
 
 ## Success Criteria
+
 1. Successfully migrate a Next.js app to TanStack Start
 2. Handle both `app/` and `src/app/` structures
 3. Generate working code with proper routing

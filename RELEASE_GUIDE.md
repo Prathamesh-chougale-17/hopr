@@ -90,7 +90,7 @@ You should see a deprecation warning on old versions.
 4. Title: `hopr v1.0.0 - Critical Bug Fix`
 5. Description:
 
-```markdown
+````markdown
 ## 🚨 Critical Update - Upgrade Required
 
 This release fixes a **critical bug** in versions 0.1.0 - 0.2.4 where files were not being properly migrated to the `src/` directory.
@@ -104,6 +104,7 @@ npm install -g hopr@latest
 # or
 npx hopr@latest migrate <path>
 ```
+````
 
 ### 🐛 Bug Fixes
 
@@ -124,7 +125,8 @@ npx hopr@latest migrate <path>
 See [CHANGELOG.md](CHANGELOG.md) for full details.
 
 **Full Changelog**: https://github.com/Prathamesh-Chougale-17/hopr/compare/hopr@0.2.4...hopr@1.0.0
-```
+
+````
 
 ## Post-Release
 
@@ -144,7 +146,7 @@ npm unpublish hopr@1.0.0
 npm deprecate hopr@1.0.0 "Critical issue found. Use 0.2.4 or wait for 1.0.1"
 
 # Then fix and release 1.0.1
-```
+````
 
 ## Verification Commands
 

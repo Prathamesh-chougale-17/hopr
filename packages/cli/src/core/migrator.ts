@@ -1,6 +1,6 @@
-import path from 'path'
-import ora from 'ora'
-import prompts from 'prompts'
+import path from "path";
+import ora from "ora";
+import prompts from "prompts";
 import {
   createBackup,
   writeFile,
@@ -9,10 +9,14 @@ import {
   remove,
   logger,
   showFileSummary,
-} from '../utils/index.js'
-import type { MigrationOptions, ProjectStructure, TransformedOutput } from '../types/index.js'
-import { detectNextJs, analyzeNextJsProject } from '../plugins/nextjs/index.js'
-import { transformToTanStackStart } from '../plugins/tanstack/index.js'
+} from "../utils/index.js";
+import type {
+  MigrationOptions,
+  ProjectStructure,
+  TransformedOutput,
+} from "../types/index.js";
+import { detectNextJs, analyzeNextJsProject } from "../plugins/nextjs/index.js";
+import { transformToTanStackStart } from "../plugins/tanstack/index.js";
 
 /**
  * Main migration orchestrator
@@ -22,115 +26,125 @@ export class Migrator {
 
   async run(): Promise<void> {
     try {
-      logger.header('🚀 hopr - Framework Migration Tool')
-      logger.blank()
+      logger.header("🚀 hopr - Framework Migration Tool");
+      logger.blank();
 
       // Step 1: Detect framework
-      const spinner = ora('Detecting framework...').start()
-      const isNextJs = await detectNextJs(this.options.sourceDir)
+      const spinner = ora("Detecting framework...").start();
+      const isNextJs = await detectNextJs(this.options.sourceDir);
 
       if (!isNextJs) {
-        spinner.fail('Could not detect Next.js project')
-        logger.error('Currently only Next.js projects are supported')
-        process.exit(1)
+        spinner.fail("Could not detect Next.js project");
+        logger.error("Currently only Next.js projects are supported");
+        process.exit(1);
       }
 
-      spinner.succeed('Detected Next.js project')
+      spinner.succeed("Detected Next.js project");
 
       // Step 2: Analyze project
-      spinner.start('Analyzing project structure...')
-      const structure = await analyzeNextJsProject(this.options.sourceDir)
-      spinner.succeed(`Found ${structure.routes.length} routes`)
+      spinner.start("Analyzing project structure...");
+      const structure = await analyzeNextJsProject(this.options.sourceDir);
+      spinner.succeed(`Found ${structure.routes.length} routes`);
 
       // Display project info
-      this.displayProjectInfo(structure)
+      this.displayProjectInfo(structure);
 
       // Step 3: Confirm migration
       if (!this.options.skipConfirm && !this.options.dryRun) {
         const { confirmed } = await prompts({
-          type: 'confirm',
-          name: 'confirmed',
+          type: "confirm",
+          name: "confirmed",
           message: `Migrate to ${this.options.targetFramework}?`,
           initial: true,
-        })
+        });
 
         if (!confirmed) {
-          logger.info('Migration cancelled')
-          process.exit(0)
+          logger.info("Migration cancelled");
+          process.exit(0);
         }
       }
 
       // Step 4: Create backup
       if (this.options.backup && !this.options.dryRun) {
-        spinner.start('Creating backup...')
-        const projectName = path.basename(this.options.sourceDir)
-        const parentDir = path.dirname(this.options.sourceDir)
-        const backupDir = this.options.backupDir || path.join(parentDir, `${projectName}-backup-${Date.now()}`)
-        await createBackup(this.options.sourceDir, backupDir)
-        spinner.succeed(`Backup created at ${backupDir}`)
+        spinner.start("Creating backup...");
+        const projectName = path.basename(this.options.sourceDir);
+        const parentDir = path.dirname(this.options.sourceDir);
+        const backupDir =
+          this.options.backupDir ||
+          path.join(parentDir, `${projectName}-backup-${Date.now()}`);
+        await createBackup(this.options.sourceDir, backupDir);
+        spinner.succeed(`Backup created at ${backupDir}`);
       }
 
       // Step 5: Transform
-      spinner.start('Transforming code...')
-      const output = await this.transform(structure)
-      spinner.succeed('Code transformation complete')
+      spinner.start("Transforming code...");
+      const output = await this.transform(structure);
+      spinner.succeed("Code transformation complete");
 
       // Step 6: Generate files
       if (this.options.dryRun) {
-        logger.info('Dry run mode - no files will be written')
-        this.displayDryRun(output)
+        logger.info("Dry run mode - no files will be written");
+        this.displayDryRun(output);
       } else {
-        spinner.start('Writing files...')
-        await this.generateFiles(output)
-        spinner.succeed('Files written successfully')
+        spinner.start("Writing files...");
+        await this.generateFiles(output);
+        spinner.succeed("Files written successfully");
 
         // Step 7: Update package.json
-        spinner.start('Updating package.json...')
-        await this.updatePackageJson(output)
-        spinner.succeed('package.json updated')
+        spinner.start("Updating package.json...");
+        await this.updatePackageJson(output);
+        spinner.succeed("package.json updated");
 
         // Step 8: Cleanup
-        spinner.start('Cleaning up...')
-        await this.cleanup(output)
-        spinner.succeed('Cleanup complete')
+        spinner.start("Cleaning up...");
+        await this.cleanup(output);
+        spinner.succeed("Cleanup complete");
       }
 
       // Display report
-      logger.blank()
-      this.displayReport(output)
+      logger.blank();
+      this.displayReport(output);
 
-      logger.blank()
-      logger.success('Migration completed successfully! 🎉')
-      logger.blank()
-      logger.info('Next steps:')
-      logger.step(`1. Run: ${structure.packageManager} install`)
-      logger.step(`2. Run: ${structure.packageManager} run dev`)
-      logger.step('3. Review generated files and make necessary adjustments')
-      logger.blank()
+      logger.blank();
+      logger.success("Migration completed successfully! 🎉");
+      logger.blank();
+      logger.info("Next steps:");
+      logger.step(`1. Run: ${structure.packageManager} install`);
+      logger.step(`2. Run: ${structure.packageManager} run dev`);
+      logger.step("3. Review generated files and make necessary adjustments");
+      logger.blank();
     } catch (error) {
-      logger.error(`Migration failed: ${error}`)
-      process.exit(1)
+      logger.error(`Migration failed: ${error}`);
+      process.exit(1);
     }
   }
 
   private displayProjectInfo(structure: ProjectStructure): void {
-    logger.blank()
-    logger.info('Project Information:')
-    logger.step(`Framework: ${structure.framework}`)
-    logger.step(`Package Manager: ${structure.packageManager}`)
-    logger.step(`Uses src: ${structure.useSrc ? 'Yes' : 'No'}`)
-    logger.step(`App Directory: ${structure.appDir}`)
-    logger.step(`TypeScript: ${structure.metadata?.hasTypescript ? 'Yes' : 'No'}`)
-    logger.step(`Tailwind CSS: ${structure.metadata?.hasTailwind ? 'Yes' : 'No'}`)
-    logger.blank()
+    logger.blank();
+    logger.info("Project Information:");
+    logger.step(`Framework: ${structure.framework}`);
+    logger.step(`Package Manager: ${structure.packageManager}`);
+    logger.step(`Uses src: ${structure.useSrc ? "Yes" : "No"}`);
+    logger.step(`App Directory: ${structure.appDir}`);
+    logger.step(
+      `TypeScript: ${structure.metadata?.hasTypescript ? "Yes" : "No"}`,
+    );
+    logger.step(
+      `Tailwind CSS: ${structure.metadata?.hasTailwind ? "Yes" : "No"}`,
+    );
+    logger.blank();
   }
 
-  private async transform(structure: ProjectStructure): Promise<TransformedOutput> {
+  private async transform(
+    structure: ProjectStructure,
+  ): Promise<TransformedOutput> {
     switch (this.options.targetFramework) {
-      case 'tanstack-start':
-        return transformToTanStackStart(structure)
+      case "tanstack-start":
+        return transformToTanStackStart(structure);
       default:
-        throw new Error(`Unsupported target framework: ${this.options.targetFramework}`)
+        throw new Error(
+          `Unsupported target framework: ${this.options.targetFramework}`,
+        );
     }
   }
 
@@ -138,14 +152,18 @@ export class Migrator {
     // Move files first
     if (output.filesToMove) {
       for (const { from, to } of output.filesToMove) {
-        const fromPath = path.join(this.options.sourceDir, from)
-        const toPath = path.join(this.options.sourceDir, to)
+        const fromPath = path.join(this.options.sourceDir, from);
+        const toPath = path.join(this.options.sourceDir, to);
         try {
-          const { copyFile, remove: removeUtil, fileExists } = await import('../utils/index.js')
+          const {
+            copyFile,
+            remove: removeUtil,
+            fileExists,
+          } = await import("../utils/index.js");
           if (await fileExists(fromPath)) {
-            await copyFile(fromPath, toPath)
-            await removeUtil(fromPath)
-            showFileSummary('update', `${from} → ${to}`)
+            await copyFile(fromPath, toPath);
+            await removeUtil(fromPath);
+            showFileSummary("update", `${from} → ${to}`);
           }
         } catch (error) {
           // File might not exist, continue
@@ -156,15 +174,19 @@ export class Migrator {
     // Move directories
     if (output.directoriesToMove) {
       for (const { from, to } of output.directoriesToMove) {
-        const fromPath = path.join(this.options.sourceDir, from)
-        const toPath = path.join(this.options.sourceDir, to)
+        const fromPath = path.join(this.options.sourceDir, from);
+        const toPath = path.join(this.options.sourceDir, to);
         try {
-          const { copyFile: copyUtil, remove: removeUtil, fileExists } = await import('../utils/index.js')
-          const fs = await import('fs-extra')
+          const {
+            copyFile: copyUtil,
+            remove: removeUtil,
+            fileExists,
+          } = await import("../utils/index.js");
+          const fs = await import("fs-extra");
           if (await fileExists(fromPath)) {
-            await fs.default.copy(fromPath, toPath)
-            await removeUtil(fromPath)
-            showFileSummary('update', `${from}/ → ${to}/`)
+            await fs.default.copy(fromPath, toPath);
+            await removeUtil(fromPath);
+            showFileSummary("update", `${from}/ → ${to}/`);
           }
         } catch (error) {
           // Directory might not exist, continue
@@ -174,10 +196,10 @@ export class Migrator {
 
     // Delete old source files before writing new ones
     for (const file of output.filesToDelete) {
-      const filePath = path.join(this.options.sourceDir, file)
+      const filePath = path.join(this.options.sourceDir, file);
       try {
-        await remove(filePath)
-        showFileSummary('delete', file)
+        await remove(filePath);
+        showFileSummary("delete", file);
       } catch {
         // Ignore if file doesn't exist
       }
@@ -185,35 +207,35 @@ export class Migrator {
 
     // Write transformed routes
     for (const route of output.routes) {
-      const filePath = path.join(this.options.sourceDir, route.targetPath)
-      await writeFile(filePath, route.content)
-      showFileSummary('create', route.targetPath)
+      const filePath = path.join(this.options.sourceDir, route.targetPath);
+      await writeFile(filePath, route.content);
+      showFileSummary("create", route.targetPath);
     }
 
     // Write config files
     for (const config of output.configs) {
-      const filePath = path.join(this.options.sourceDir, config.path)
-      await writeFile(filePath, config.content)
-      showFileSummary('create', config.path)
+      const filePath = path.join(this.options.sourceDir, config.path);
+      await writeFile(filePath, config.content);
+      showFileSummary("create", config.path);
     }
   }
 
   private async updatePackageJson(output: TransformedOutput): Promise<void> {
-    const packageJsonPath = path.join(this.options.sourceDir, 'package.json')
+    const packageJsonPath = path.join(this.options.sourceDir, "package.json");
     const packageJson = await readJSON<{
-      dependencies?: Record<string, string>
-      devDependencies?: Record<string, string>
-      scripts?: Record<string, string>
-      [key: string]: unknown
-    }>(packageJsonPath)
+      dependencies?: Record<string, string>;
+      devDependencies?: Record<string, string>;
+      scripts?: Record<string, string>;
+      [key: string]: unknown;
+    }>(packageJsonPath);
 
     // Remove old dependencies
     for (const dep of output.removeDependencies) {
       if (packageJson.dependencies?.[dep]) {
-        delete packageJson.dependencies[dep]
+        delete packageJson.dependencies[dep];
       }
       if (packageJson.devDependencies?.[dep]) {
-        delete packageJson.devDependencies[dep]
+        delete packageJson.devDependencies[dep];
       }
     }
 
@@ -221,25 +243,25 @@ export class Migrator {
     packageJson.dependencies = {
       ...packageJson.dependencies,
       ...output.dependencies,
-    }
+    };
 
     packageJson.devDependencies = {
       ...packageJson.devDependencies,
       ...output.devDependencies,
-    }
+    };
 
     // Update scripts
     packageJson.scripts = {
       ...packageJson.scripts,
-      dev: 'vite dev',
-      build: 'vite build',
-      start: 'node .output/server/index.mjs',
-    }
+      dev: "vite dev",
+      build: "vite build",
+      start: "node .output/server/index.mjs",
+    };
 
     // Add type: module
-    packageJson.type = 'module'
+    packageJson.type = "module";
 
-    await writeJSON(packageJsonPath, packageJson)
+    await writeJSON(packageJsonPath, packageJson);
   }
 
   private async cleanup(output: TransformedOutput): Promise<void> {
@@ -248,58 +270,58 @@ export class Migrator {
   }
 
   private displayDryRun(output: TransformedOutput): void {
-    logger.blank()
-    logger.info('Files that would be created/modified:')
-    logger.blank()
+    logger.blank();
+    logger.info("Files that would be created/modified:");
+    logger.blank();
 
     if (output.filesToMove) {
       for (const { from, to } of output.filesToMove) {
-        showFileSummary('update', `${from} → ${to}`)
+        showFileSummary("update", `${from} → ${to}`);
       }
     }
 
     if (output.directoriesToMove) {
       for (const { from, to } of output.directoriesToMove) {
-        showFileSummary('update', `${from}/ → ${to}/`)
+        showFileSummary("update", `${from}/ → ${to}/`);
       }
     }
 
     for (const route of output.routes) {
-      showFileSummary('create', route.targetPath)
+      showFileSummary("create", route.targetPath);
     }
 
     for (const config of output.configs) {
-      showFileSummary('create', config.path)
+      showFileSummary("create", config.path);
     }
 
-    logger.blank()
-    logger.info('Files that would be deleted:')
-    logger.blank()
+    logger.blank();
+    logger.info("Files that would be deleted:");
+    logger.blank();
 
     for (const file of output.filesToDelete) {
-      showFileSummary('delete', file)
+      showFileSummary("delete", file);
     }
   }
 
   private displayReport(output: TransformedOutput): void {
-    logger.header('Migration Report')
-    logger.info(`Total routes: ${output.report.totalRoutes}`)
-    logger.info(`Transformed: ${output.report.transformedRoutes}`)
-    logger.info(`Skipped: ${output.report.skippedRoutes}`)
+    logger.header("Migration Report");
+    logger.info(`Total routes: ${output.report.totalRoutes}`);
+    logger.info(`Transformed: ${output.report.transformedRoutes}`);
+    logger.info(`Skipped: ${output.report.skippedRoutes}`);
 
     if (output.report.warnings.length > 0) {
-      logger.blank()
-      logger.warn('Warnings:')
+      logger.blank();
+      logger.warn("Warnings:");
       for (const warning of output.report.warnings) {
-        logger.warn(`  ${warning}`)
+        logger.warn(`  ${warning}`);
       }
     }
 
     if (output.report.errors.length > 0) {
-      logger.blank()
-      logger.error('Errors:')
+      logger.blank();
+      logger.error("Errors:");
       for (const error of output.report.errors) {
-        logger.error(`  ${error}`)
+        logger.error(`  ${error}`);
       }
     }
   }
@@ -308,10 +330,12 @@ export class Migrator {
 /**
  * Detect framework in project directory
  */
-export async function detectFramework(projectPath: string): Promise<string | null> {
+export async function detectFramework(
+  projectPath: string,
+): Promise<string | null> {
   if (await detectNextJs(projectPath)) {
-    return 'nextjs'
+    return "nextjs";
   }
 
-  return null
+  return null;
 }

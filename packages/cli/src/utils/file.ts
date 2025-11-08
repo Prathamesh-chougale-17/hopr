@@ -26,7 +26,7 @@ export async function readFile(filePath: string): Promise<string> {
  */
 export async function writeFile(
   filePath: string,
-  content: string
+  content: string,
 ): Promise<void> {
   await fs.ensureDir(path.dirname(filePath));
   await fs.writeFile(filePath, content, "utf-8");
@@ -37,7 +37,7 @@ export async function writeFile(
  */
 export async function copyFile(
   source: string,
-  destination: string
+  destination: string,
 ): Promise<void> {
   await fs.ensureDir(path.dirname(destination));
   await fs.copy(source, destination);
@@ -62,7 +62,7 @@ export async function readJSON<T = unknown>(filePath: string): Promise<T> {
  */
 export async function writeJSON(
   filePath: string,
-  data: unknown
+  data: unknown,
 ): Promise<void> {
   await fs.ensureDir(path.dirname(filePath));
   await fs.writeJSON(filePath, data, { spaces: 2 });
@@ -73,7 +73,7 @@ export async function writeJSON(
  */
 export async function findFiles(
   pattern: string,
-  cwd: string
+  cwd: string,
 ): Promise<string[]> {
   return glob(pattern, {
     cwd,
@@ -102,7 +102,7 @@ export function normalizePath(filePath: string): string {
  */
 export async function createBackup(
   sourceDir: string,
-  backupDir: string
+  backupDir: string,
 ): Promise<void> {
   // List of directories and files to exclude from backup
   const excludePatterns = [
@@ -130,7 +130,7 @@ export async function createBackup(
       // Don't copy if it matches any exclude pattern
       return !excludePatterns.some(
         (pattern) =>
-          relativePath.includes(pattern) || relativePath.startsWith(pattern)
+          relativePath.includes(pattern) || relativePath.startsWith(pattern),
       );
     },
   });

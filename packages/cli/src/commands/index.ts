@@ -1,2 +1,2 @@
-export * from './detect.js'
-export * from './migrate.js'
+export * from "./detect.js";
+export * from "./migrate.js";
