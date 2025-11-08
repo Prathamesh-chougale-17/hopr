@@ -19,23 +19,23 @@
 
 Global installation:
 
-\`\`\`bash
+```bash
 npm install -g hopr
 
 # or
 
 bun add -g hopr
-\`\`\`
+```
 
 Run without installing:
 
-\`\`\`bash
+```bash
 npx hopr@latest migrate ./my-project
-\`\`\`
+```
 
 ## Quick Start
 
-\`\`\`bash
+```bash
 
 # Detect framework
 
@@ -48,7 +48,7 @@ hopr migrate ./my-project --dry-run
 # Run migration
 
 hopr migrate ./my-project
-\`\`\`
+```
 
 ## Documentation
 
