@@ -10,7 +10,7 @@ const traverse = (traverse_ as any).default || traverse_;
 const generate = (generate_ as any).default || generate_;
 
 /**
- * Transform Next.js layout.tsx to TanStack Start __root.tsx
+ * Transform Next.js layout.tsx to TanStack Start __root.tsx with new pattern
  */
 export function transformLayoutToRoot(content: string): string {
   // Parse the code
@@ -22,6 +22,7 @@ export function transformLayoutToRoot(content: string): string {
   let hasMetadataExport = false;
   let metadataValue: t.Expression | null = null;
   let layoutComponentName = "RootLayout";
+  let originalLayoutBody: t.Statement | null = null;
 
   // First pass: collect information
   traverse(ast, {
@@ -42,8 +43,13 @@ export function transformLayoutToRoot(content: string): string {
     },
     ExportDefaultDeclaration(path) {
       const declaration = path.node.declaration;
-      if (t.isFunctionDeclaration(declaration) && declaration.id) {
-        layoutComponentName = declaration.id.name;
+      if (t.isFunctionDeclaration(declaration)) {
+        if (declaration.id) {
+          layoutComponentName = declaration.id.name;
+        }
+        if (t.isBlockStatement(declaration.body)) {
+          originalLayoutBody = declaration.body.body[0]; // Save the return statement
+        }
       } else if (t.isIdentifier(declaration)) {
         layoutComponentName = declaration.name;
       }
@@ -81,20 +87,34 @@ export function transformLayoutToRoot(content: string): string {
 
     Program(path) {
       // Add TanStack Router imports at the top
-      const importDeclaration = t.importDeclaration(
+      const routerImports = t.importDeclaration(
         [
-          t.importSpecifier(t.identifier("Outlet"), t.identifier("Outlet")),
-          t.importSpecifier(
-            t.identifier("createRootRoute"),
-            t.identifier("createRootRoute"),
-          ),
-          t.importSpecifier(
-            t.identifier("HeadContent"),
-            t.identifier("HeadContent"),
-          ),
+          t.importSpecifier(t.identifier("HeadContent"), t.identifier("HeadContent")),
           t.importSpecifier(t.identifier("Scripts"), t.identifier("Scripts")),
+          t.importSpecifier(
+            t.identifier("createRootRoute"),
+            t.identifier("createRootRoute"),
+          ),
         ],
         t.stringLiteral("@tanstack/react-router"),
+      );
+
+      // Add devtools imports
+      const devtoolsPanelImport = t.importDeclaration(
+        [
+          t.importSpecifier(
+            t.identifier("TanStackRouterDevtoolsPanel"),
+            t.identifier("TanStackRouterDevtoolsPanel"),
+          ),
+        ],
+        t.stringLiteral("@tanstack/react-router-devtools"),
+      );
+
+      const devtoolsImport = t.importDeclaration(
+        [
+          t.importSpecifier(t.identifier("TanStackDevtools"), t.identifier("TanStackDevtools")),
+        ],
+        t.stringLiteral("@tanstack/react-devtools"),
       );
 
       // Check if globals.css import exists
@@ -114,13 +134,14 @@ export function transformLayoutToRoot(content: string): string {
         path.node.body.unshift(cssImport);
       }
 
-      path.node.body.unshift(importDeclaration);
+      path.node.body.unshift(devtoolsImport);
+      path.node.body.unshift(devtoolsPanelImport);
+      path.node.body.unshift(routerImports);
 
-      // Create Route export
-      const routeExport = createRouteExport(
+      // Create Route export with shellComponent
+      const routeExport = createRouteExportWithShellComponent(
         hasMetadataExport,
         metadataValue,
-        layoutComponentName,
       );
 
       // Find the position to insert (after imports, before component)
@@ -131,22 +152,14 @@ export function transformLayoutToRoot(content: string): string {
       path.node.body.splice(lastImportIndex, 0, routeExport);
     },
 
-    // Transform default export function
+    // Transform default export function to RootDocument
     ExportDefaultDeclaration(path) {
       const declaration = path.node.declaration;
 
       if (t.isFunctionDeclaration(declaration)) {
-        // Convert to regular function
-        const functionDeclaration = t.functionDeclaration(
-          declaration.id || t.identifier(layoutComponentName),
-          [],
-          declaration.body,
-        );
-
-        path.replaceWith(functionDeclaration);
-
-        // Transform function body
-        transformFunctionBody(functionDeclaration);
+        // Create new RootDocument function that wraps children
+        const rootDocumentFunction = createRootDocumentFunction(declaration);
+        path.replaceWith(rootDocumentFunction);
       }
     },
 
@@ -174,132 +187,21 @@ export function transformLayoutToRoot(content: string): string {
 }
 
 /**
- * Transform function body to use Outlet and Scripts
+ * Create Route export with shellComponent pattern
  */
-function transformFunctionBody(
-  functionDeclaration: t.FunctionDeclaration,
-): void {
-  traverse(
-    t.file(t.program([functionDeclaration])),
-    {
-      JSXElement(path) {
-        // Find the body element and add Outlet
-        if (
-          t.isJSXElement(path.node) &&
-          t.isJSXIdentifier(path.node.openingElement.name) &&
-          path.node.openingElement.name.name === "body"
-        ) {
-          const children = path.node.children.filter((child) => {
-            // Remove {children} expression
-            if (t.isJSXExpressionContainer(child)) {
-              return !(
-                t.isIdentifier(child.expression) &&
-                child.expression.name === "children"
-              );
-            }
-            return true;
-          });
-
-          // Add Outlet and Scripts
-          children.push(
-            t.jsxElement(
-              t.jsxOpeningElement(t.jsxIdentifier("Outlet"), [], true),
-              null,
-              [],
-              true,
-            ),
-            t.jsxElement(
-              t.jsxOpeningElement(t.jsxIdentifier("Scripts"), [], true),
-              null,
-              [],
-              true,
-            ),
-          );
-
-          path.node.children = children;
-
-          // Remove font variable className attributes
-          path.node.openingElement.attributes =
-            path.node.openingElement.attributes.filter((attr) => {
-              if (
-                t.isJSXAttribute(attr) &&
-                t.isJSXIdentifier(attr.name) &&
-                attr.name.name === "className"
-              ) {
-                // Check if className contains font variables
-                if (attr.value && t.isJSXExpressionContainer(attr.value)) {
-                  const expr = attr.value.expression;
-                  if (t.isTemplateLiteral(expr)) {
-                    // Check if template literal references font variables
-                    const hasFontVars = expr.expressions.some((exp) => {
-                      if (
-                        t.isMemberExpression(exp) &&
-                        t.isIdentifier(exp.object)
-                      ) {
-                        return (
-                          exp.object.name.toLowerCase().includes("geist") ||
-                          exp.object.name.toLowerCase().includes("font")
-                        );
-                      }
-                      return false;
-                    });
-                    if (hasFontVars) {
-                      // Replace with simple antialiased class
-                      attr.value = t.stringLiteral("antialiased");
-                    }
-                  }
-                }
-              }
-              return true;
-            });
-        }
-
-        // Add HeadContent to head
-        if (
-          t.isJSXElement(path.node) &&
-          t.isJSXIdentifier(path.node.openingElement.name) &&
-          path.node.openingElement.name.name === "head"
-        ) {
-          path.node.children.push(
-            t.jsxElement(
-              t.jsxOpeningElement(t.jsxIdentifier("HeadContent"), [], true),
-              null,
-              [],
-              true,
-            ),
-          );
-        }
-      },
-
-      // Remove children parameter
-      FunctionDeclaration(path) {
-        path.node.params = [];
-      },
-    },
-    undefined,
-    functionDeclaration,
-  );
-}
-
-/**
- * Create Route export with head function
- */
-function createRouteExport(
+function createRouteExportWithShellComponent(
   hasMetadata: boolean,
   metadataValue: t.Expression | null,
-  componentName: string,
 ): t.ExportNamedDeclaration {
   const properties: t.ObjectProperty[] = [];
 
-  // Add head property if metadata exists
-  if (hasMetadata && metadataValue) {
-    const headFunction = createHeadFunction(metadataValue);
-    properties.push(t.objectProperty(t.identifier("head"), headFunction));
-  }
+  // Add head property with metadata
+  const headFunction = createHeadFunction();
+  properties.push(t.objectProperty(t.identifier("head"), headFunction));
 
-  // Add component property
+  // Add shellComponent property
   properties.push(
-    t.objectProperty(t.identifier("component"), t.identifier(componentName)),
+    t.objectProperty(t.identifier("shellComponent"), t.identifier("RootDocument")),
   );
 
   const routeExport = t.exportNamedDeclaration(
@@ -317,12 +219,9 @@ function createRouteExport(
 }
 
 /**
- * Convert metadata object to head function
+ * Create head function with proper meta tags
  */
-function createHeadFunction(
-  metadataValue: t.Expression,
-): t.ArrowFunctionExpression {
-  // Create head function that returns metadata structure
+function createHeadFunction(): t.ArrowFunctionExpression {
   return t.arrowFunctionExpression(
     [],
     t.parenthesizedExpression(
@@ -346,6 +245,12 @@ function createHeadFunction(
                 t.stringLiteral("width=device-width, initial-scale=1"),
               ),
             ]),
+            t.objectExpression([
+              t.objectProperty(
+                t.identifier("title"),
+                t.stringLiteral("TanStack Start Starter"),
+              ),
+            ]),
           ]),
         ),
         t.objectProperty(
@@ -362,5 +267,179 @@ function createHeadFunction(
         ),
       ]),
     ),
+  );
+}
+
+/**
+ * Create RootDocument function that wraps children with devtools
+ */
+function createRootDocumentFunction(
+  originalLayout: t.FunctionDeclaration,
+): t.FunctionDeclaration {
+  // Create children parameter with React.ReactNode type
+  const childrenParam = t.identifier("children");
+  childrenParam.typeAnnotation = t.tsTypeAnnotation(
+    t.tsTypeReference(
+      t.tsQualifiedName(t.identifier("React"), t.identifier("ReactNode")),
+    ),
+  );
+
+  const params = [
+    t.objectPattern([
+      t.objectProperty(t.identifier("children"), childrenParam, false, true),
+    ]),
+  ];
+
+  // Get original body JSX but replace children with {children} and devtools
+  let bodyJSX: t.JSXElement | null = null;
+
+  // Extract JSX from original layout
+  traverse(
+    t.file(t.program([originalLayout])),
+    {
+      ReturnStatement(path) {
+        if (t.isJSXElement(path.node.argument)) {
+          bodyJSX = path.node.argument;
+        }
+      },
+    },
+    undefined,
+    originalLayout,
+  );
+
+  if (bodyJSX) {
+    // Transform the body JSX
+    traverse(
+      t.file(t.program([t.expressionStatement(bodyJSX)])),
+      {
+        JSXElement(path) {
+          // Find body element
+          if (
+            t.isJSXElement(path.node) &&
+            t.isJSXIdentifier(path.node.openingElement.name) &&
+            path.node.openingElement.name.name === "body"
+          ) {
+            // Remove {children} and add our new content
+            path.node.children = [
+              t.jsxExpressionContainer(t.identifier("children")),
+              t.jsxElement(
+                t.jsxOpeningElement(
+                  t.jsxIdentifier("TanStackDevtools"),
+                  [
+                    t.jsxAttribute(
+                      t.jsxIdentifier("config"),
+                      t.jsxExpressionContainer(
+                        t.objectExpression([
+                          t.objectProperty(
+                            t.identifier("position"),
+                            t.stringLiteral("bottom-right"),
+                          ),
+                        ]),
+                      ),
+                    ),
+                    t.jsxAttribute(
+                      t.jsxIdentifier("plugins"),
+                      t.jsxExpressionContainer(
+                        t.arrayExpression([
+                          t.objectExpression([
+                            t.objectProperty(
+                              t.identifier("name"),
+                              t.stringLiteral("Tanstack Router"),
+                            ),
+                            t.objectProperty(
+                              t.identifier("render"),
+                              t.jsxElement(
+                                t.jsxOpeningElement(
+                                  t.jsxIdentifier("TanStackRouterDevtoolsPanel"),
+                                  [],
+                                  true,
+                                ),
+                                null,
+                                [],
+                                true,
+                              ),
+                            ),
+                          ]),
+                        ]),
+                      ),
+                    ),
+                  ],
+                  false,
+                ),
+                t.jsxClosingElement(t.jsxIdentifier("TanStackDevtools")),
+                [],
+                false,
+              ),
+              t.jsxElement(
+                t.jsxOpeningElement(t.jsxIdentifier("Scripts"), [], true),
+                null,
+                [],
+                true,
+              ),
+            ];
+
+            // Remove font className if exists
+            path.node.openingElement.attributes =
+              path.node.openingElement.attributes.filter((attr) => {
+                if (
+                  t.isJSXAttribute(attr) &&
+                  t.isJSXIdentifier(attr.name) &&
+                  attr.name.name === "className"
+                ) {
+                  // Check if className contains font variables
+                  if (attr.value && t.isJSXExpressionContainer(attr.value)) {
+                    const expr = attr.value.expression;
+                    if (t.isTemplateLiteral(expr)) {
+                      const hasFontVars = expr.expressions.some((exp) => {
+                        if (
+                          t.isMemberExpression(exp) &&
+                          t.isIdentifier(exp.object)
+                        ) {
+                          return (
+                            exp.object.name.toLowerCase().includes("geist") ||
+                            exp.object.name.toLowerCase().includes("font")
+                          );
+                        }
+                        return false;
+                      });
+                      if (hasFontVars) {
+                        return false; // Remove the className
+                      }
+                    }
+                  }
+                }
+                return true;
+              });
+          }
+
+          // Add HeadContent to head
+          if (
+            t.isJSXElement(path.node) &&
+            t.isJSXIdentifier(path.node.openingElement.name) &&
+            path.node.openingElement.name.name === "head"
+          ) {
+            path.node.children.push(
+              t.jsxElement(
+                t.jsxOpeningElement(t.jsxIdentifier("HeadContent"), [], true),
+                null,
+                [],
+                true,
+              ),
+            );
+          }
+        },
+      },
+      undefined,
+      bodyJSX,
+    );
+  }
+
+  // Create the function body
+  const functionBody = t.blockStatement([t.returnStatement(bodyJSX)]);
+
+  return t.functionDeclaration(
+    t.identifier("RootDocument"),
+    params,
+    functionBody,
   );
 }

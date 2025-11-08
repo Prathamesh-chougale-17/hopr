@@ -1,8 +1,64 @@
 # hopr
 
+## 1.0.5
+
+### Patch Changes
+
+- **Updated Root Route Pattern to Match TanStack Template**
+
+  The root route transformer has been completely rewritten to match the exact pattern from tanstack-template:
+  - **shellComponent Pattern**: Uses `shellComponent: RootDocument` instead of direct component
+  - **RootDocument Function**: Accepts `{ children }` parameter and wraps with devtools
+  - **Devtools Integration**:
+    - Automatically includes `@tanstack/react-router-devtools`
+    - Automatically includes `@tanstack/react-devtools`
+    - Configured with bottom-right position and router panel plugin
+  - **Children Wrapping**: Properly preserves existing layout structure while wrapping children
+  - **Route Export Pattern**:
+
+    ```tsx
+    export const Route = createRootRoute({
+      head: () => ({ meta: [...], links: [...] }),
+      shellComponent: RootDocument
+    })
+
+    function RootDocument({ children }: { children: React.ReactNode }) {
+      return (
+        <html>
+          <head><HeadContent /></head>
+          <body>
+            {children}
+            <TanStackDevtools config={{...}} plugins={[...]} />
+            <Scripts />
+          </body>
+        </html>
+      )
+    }
+    ```
+
+  - **Page Routes**: Continue using simple pattern `export const Route = createFileRoute("/")({ component: Home })`
+
+  **Vite Config Updates**
+  - Tailwind plugin now correctly placed before nitroV2Plugin
+  - Added explicit srcDirectory and routesDirectory with comments
+  - Matches tanstack-template vite.config.ts exactly
+
 ## 1.0.4
 
 ### Patch Changes
+
+- **Updated Root Route Pattern to Match TanStack Template** ✅
+  - **\_\_root.tsx**: Now uses `shellComponent` pattern with `RootDocument` function that accepts children
+  - **Devtools Integration**: Automatically adds TanStack Router devtools panel and React devtools
+  - **Children Wrapping**: Properly wraps children with devtools and Scripts components
+  - **Route Export Pattern**:
+    ```tsx
+    export const Route = createRootRoute({
+      head: () => ({ meta: [...], links: [...] }),
+      shellComponent: RootDocument
+    })
+    ```
+  - **Page Export Pattern**: `export const Route = createFileRoute("/")({ component: Home })`
 
 - **Updated Configuration to Match TanStack Template**
 

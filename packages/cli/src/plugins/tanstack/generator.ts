@@ -244,29 +244,38 @@ export const Route = createFileRoute('/api/endpoint')({
 }
 
 /**
- * Generate vite.config.ts matching tanstack-template
+ * Generate vite.config.ts matching tanstack-template exactly
  */
 function generateViteConfig(structure: ProjectStructure): {
   path: string;
   content: string;
 } {
+  const hasTailwind = structure.metadata?.hasTailwind;
+
   return {
     path: "vite.config.ts",
     content: `import { defineConfig } from "vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import viteTsConfigPaths from "vite-tsconfig-paths";
-${structure.metadata?.hasTailwind ? 'import tailwindcss from "@tailwindcss/vite";\n' : ""}import { nitroV2Plugin } from "@tanstack/nitro-v2-vite-plugin";
-
+import { nitroV2Plugin } from "@tanstack/nitro-v2-vite-plugin";
+${hasTailwind ? 'import tailwindcss from "@tailwindcss/vite";\n' : ""}
 const config = defineConfig({
   plugins: [
+    ${hasTailwind ? "tailwindcss()," : ""}
     nitroV2Plugin(),
     // this is the plugin that enables path aliases
     viteTsConfigPaths({
       projects: ["./tsconfig.json"],
     }),
-    ${structure.metadata?.hasTailwind ? "tailwindcss()," : ""}
-    tanstackStart(),
+
+    tanstackStart({
+      srcDirectory: "src", // This is the default
+      router: {
+        // Specifies the directory TanStack Router uses for your routes.
+        routesDirectory: "app", // Defaults to "routes", relative to srcDirectory
+      },
+    }),
     viteReact(),
   ],
 });
