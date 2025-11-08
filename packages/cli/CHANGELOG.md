@@ -1,5 +1,29 @@
 # hopr
 
+## 1.0.1
+
+### Patch Changes
+
+- ### Issues Resolved:
+  1. **Backup Directory Location Issue** ✅
+     - **Problem:** Backup was trying to copy the project into a subdirectory of itself (`.hopr-backup` inside the project)
+     - **Error:** `Cannot copy to a subdirectory of itself`
+     - **Solution:** Changed backup location to be a sibling directory of the project with timestamp:
+       - Before: `project/.hopr-backup`
+       - After: `parent/project-backup-1699411200000`
+  2. **Unnecessary Files in Backup** ✅
+     - **Problem:** Large directories like node_modules and `.next` were being copied
+     - **Solution:** Enhanced exclusion list to skip:
+       - node_modules
+       - `.next`
+       - `dist`
+       - `build`
+       - .turbo
+       - .git
+       - `coverage`
+       - `.cache`
+       - Lock files (`package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`, `bun.lockb`)
+
 ## 1.0.0
 
 ### Major Changes

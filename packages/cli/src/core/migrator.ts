@@ -63,7 +63,9 @@ export class Migrator {
       // Step 4: Create backup
       if (this.options.backup && !this.options.dryRun) {
         spinner.start('Creating backup...')
-        const backupDir = this.options.backupDir || path.join(this.options.sourceDir, '.hopr-backup')
+        const projectName = path.basename(this.options.sourceDir)
+        const parentDir = path.dirname(this.options.sourceDir)
+        const backupDir = this.options.backupDir || path.join(parentDir, `${projectName}-backup-${Date.now()}`)
         await createBackup(this.options.sourceDir, backupDir)
         spinner.succeed(`Backup created at ${backupDir}`)
       }
