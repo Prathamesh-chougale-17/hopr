@@ -70,6 +70,10 @@ export interface TransformedOutput {
   removeDependencies: string[]
   /** Files to delete */
   filesToDelete: string[]
+  /** Files to move (from -> to) */
+  filesToMove?: Array<{ from: string; to: string }>
+  /** Directories to move (from -> to) */
+  directoriesToMove?: Array<{ from: string; to: string }>
   /** Migration report */
   report: {
     totalRoutes: number

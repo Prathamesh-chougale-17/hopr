@@ -61,6 +61,30 @@ export async function transformToTanStackStart(
     }
   }
 
+  // Delete old app directory after moving contents to src/app
+  if (structure.appDir && !structure.useSrc) {
+    filesToDelete.push(structure.appDir);
+  }
+
+  // Files and directories to move to src/
+  const filesToMove: Array<{ from: string; to: string }> = [];
+  const directoriesToMove: Array<{ from: string; to: string }> = [];
+
+  // Move app/globals.css and app/favicon.ico to src/app/
+  const appDir = structure.appDir;
+  if (appDir) {
+    filesToMove.push(
+      { from: `${appDir}/globals.css`, to: 'src/app/globals.css' },
+      { from: `${appDir}/favicon.ico`, to: 'src/app/favicon.ico' }
+    );
+  }
+
+  // Move components and lib directories to src/
+  directoriesToMove.push(
+    { from: 'components', to: 'src/components' },
+    { from: 'lib', to: 'src/lib' }
+  );
+
   return {
     framework: "tanstack-start",
     routes: transformedRoutes,
@@ -69,6 +93,8 @@ export async function transformToTanStackStart(
     devDependencies,
     removeDependencies,
     filesToDelete,
+    filesToMove,
+    directoriesToMove,
     report: {
       totalRoutes: structure.routes.length,
       transformedRoutes: transformedRoutes.length,

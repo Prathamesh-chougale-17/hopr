@@ -135,6 +135,43 @@ export class Migrator {
   }
 
   private async generateFiles(output: TransformedOutput): Promise<void> {
+    // Move files first
+    if (output.filesToMove) {
+      for (const { from, to } of output.filesToMove) {
+        const fromPath = path.join(this.options.sourceDir, from)
+        const toPath = path.join(this.options.sourceDir, to)
+        try {
+          const { copyFile, remove: removeUtil, fileExists } = await import('../utils/index.js')
+          if (await fileExists(fromPath)) {
+            await copyFile(fromPath, toPath)
+            await removeUtil(fromPath)
+            showFileSummary('update', `${from} → ${to}`)
+          }
+        } catch (error) {
+          // File might not exist, continue
+        }
+      }
+    }
+
+    // Move directories
+    if (output.directoriesToMove) {
+      for (const { from, to } of output.directoriesToMove) {
+        const fromPath = path.join(this.options.sourceDir, from)
+        const toPath = path.join(this.options.sourceDir, to)
+        try {
+          const { copyFile: copyUtil, remove: removeUtil, fileExists } = await import('../utils/index.js')
+          const fs = await import('fs-extra')
+          if (await fileExists(fromPath)) {
+            await fs.default.copy(fromPath, toPath)
+            await removeUtil(fromPath)
+            showFileSummary('update', `${from}/ → ${to}/`)
+          }
+        } catch (error) {
+          // Directory might not exist, continue
+        }
+      }
+    }
+
     // Write transformed routes
     for (const route of output.routes) {
       const filePath = path.join(this.options.sourceDir, route.targetPath)
@@ -210,6 +247,18 @@ export class Migrator {
     logger.blank()
     logger.info('Files that would be created/modified:')
     logger.blank()
+
+    if (output.filesToMove) {
+      for (const { from, to } of output.filesToMove) {
+        showFileSummary('update', `${from} → ${to}`)
+      }
+    }
+
+    if (output.directoriesToMove) {
+      for (const { from, to } of output.directoriesToMove) {
+        showFileSummary('update', `${from}/ → ${to}/`)
+      }
+    }
 
     for (const route of output.routes) {
       showFileSummary('create', route.targetPath)
