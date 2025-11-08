@@ -244,7 +244,7 @@ export const Route = createFileRoute('/api/endpoint')({
 }
 
 /**
- * Generate vite.config.ts per migration guide
+ * Generate vite.config.ts matching tanstack-template
  */
 function generateViteConfig(structure: ProjectStructure): {
   path: string;
@@ -253,26 +253,25 @@ function generateViteConfig(structure: ProjectStructure): {
   return {
     path: "vite.config.ts",
     content: `import { defineConfig } from "vite";
-import { tanstackStart } from "@tanstack/start/plugin/vite";
+import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
-import tsconfigPaths from "vite-tsconfig-paths";
-${structure.metadata?.hasTailwind ? 'import tailwindcss from "@tailwindcss/vite";\n' : ""}
-export default defineConfig({
-  server: {
-    port: 3000,
-  },
+import viteTsConfigPaths from "vite-tsconfig-paths";
+${structure.metadata?.hasTailwind ? 'import tailwindcss from "@tailwindcss/vite";\n' : ""}import { nitroV2Plugin } from "@tanstack/nitro-v2-vite-plugin";
+
+const config = defineConfig({
   plugins: [
-    ${structure.metadata?.hasTailwind ? "tailwindcss()," : ""}
-    tsconfigPaths(),
-    tanstackStart({
-      srcDirectory: "src",
-      router: {
-        routesDirectory: "app",
-      },
+    nitroV2Plugin(),
+    // this is the plugin that enables path aliases
+    viteTsConfigPaths({
+      projects: ["./tsconfig.json"],
     }),
+    ${structure.metadata?.hasTailwind ? "tailwindcss()," : ""}
+    tanstackStart(),
     viteReact(),
   ],
 });
+
+export default config;
 `,
   };
 }
@@ -299,7 +298,7 @@ export function getRouter() {
 }
 
 /**
- * Generate updated tsconfig.json
+ * Generate updated tsconfig.json matching tanstack-template
  */
 function generateTsConfig(structure: ProjectStructure): {
   path: string;
@@ -309,23 +308,32 @@ function generateTsConfig(structure: ProjectStructure): {
     path: "tsconfig.json",
     content: JSON.stringify(
       {
+        include: ["**/*.ts", "**/*.tsx"],
         compilerOptions: {
           target: "ES2022",
-          lib: ["ES2022", "DOM", "DOM.Iterable"],
+          jsx: "react-jsx",
           module: "ESNext",
-          skipLibCheck: true,
+          lib: ["ES2022", "DOM", "DOM.Iterable"],
+          types: ["vite/client"],
+
+          /* Bundler mode */
           moduleResolution: "bundler",
           allowImportingTsExtensions: true,
-          resolveJsonModule: true,
-          isolatedModules: true,
+          verbatimModuleSyntax: false,
           noEmit: true,
-          jsx: "react-jsx",
+
+          /* Linting */
+          skipLibCheck: true,
           strict: true,
           noUnusedLocals: true,
           noUnusedParameters: true,
           noFallthroughCasesInSwitch: true,
+          noUncheckedSideEffectImports: true,
+          baseUrl: ".",
+          paths: {
+            "@/*": ["./src/*"],
+          },
         },
-        include: ["src"],
       },
       null,
       2,
@@ -334,42 +342,44 @@ function generateTsConfig(structure: ProjectStructure): {
 }
 
 /**
- * Generate dependencies
+ * Generate dependencies matching tanstack-template
  */
 function generateDependencies(
   structure: ProjectStructure,
 ): Record<string, string> {
-  return {
-    "@tanstack/react-router": "^1.98.0",
-    "@tanstack/start": "^1.98.0",
-    "@vinxi/react": "^0.2.4",
-    react: structure.dependencies["react"] || "^19.0.0",
-    "react-dom": structure.dependencies["react-dom"] || "^19.0.0",
-    vinxi: "^0.5.3",
+  const deps: Record<string, string> = {
+    "@tanstack/nitro-v2-vite-plugin": "^1.132.31",
+    "@tanstack/react-devtools": "^0.7.0",
+    "@tanstack/react-router": "^1.132.0",
+    "@tanstack/react-router-devtools": "^1.132.0",
+    "@tanstack/react-router-ssr-query": "^1.131.7",
+    "@tanstack/react-start": "^1.132.0",
+    "@tanstack/router-plugin": "^1.132.0",
+    react: structure.dependencies["react"] || "^19.2.0",
+    "react-dom": structure.dependencies["react-dom"] || "^19.2.0",
+    "vite-tsconfig-paths": "^5.1.4",
   };
+
+  if (structure.metadata?.hasTailwind) {
+    deps["@tailwindcss/vite"] = "^4.0.6";
+    deps["tailwindcss"] = "^4.0.6";
+  }
+
+  return deps;
 }
 
 /**
- * Generate dev dependencies
+ * Generate dev dependencies matching tanstack-template
  */
 function generateDevDependencies(
   structure: ProjectStructure,
 ): Record<string, string> {
-  const devDeps: Record<string, string> = {
-    "@tanstack/router-devtools": "^1.98.0",
-    "@tanstack/router-plugin": "^1.98.2",
-    "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0",
-    "@vitejs/plugin-react": "^4.3.4",
-    vite: "^6.0.7",
-    "vite-tsconfig-paths": "^5.1.4",
-    typescript: structure.devDependencies["typescript"] || "^5.0.0",
+  return {
+    "@types/node": "^22.10.2",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "^5.0.4",
+    typescript: structure.devDependencies["typescript"] || "^5.7.2",
+    vite: "^7.1.7",
   };
-
-  if (structure.metadata?.hasTailwind) {
-    devDeps["@tailwindcss/vite"] = "^4.0.0";
-    devDeps["tailwindcss"] = "^4.0.0";
-  }
-
-  return devDeps;
 }

@@ -239,12 +239,12 @@ export class Migrator {
       ...output.devDependencies,
     };
 
-    // Update scripts
+    // Update scripts to match tanstack-template
     packageJson.scripts = {
       ...packageJson.scripts,
-      dev: "vite dev",
+      dev: "vite dev --port 3000",
       build: "vite build",
-      start: "node .output/server/index.mjs",
+      serve: "vite preview",
     };
 
     // Add type: module

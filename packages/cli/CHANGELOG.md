@@ -1,10 +1,36 @@
 # hopr
 
-## 1.0.3
+## 1.0.4
 
 ### Patch Changes
 
-- **Removed Backup Functionality**
+- **Updated Configuration to Match TanStack Template**
+
+  All generated configurations now reference the working `tanstack-template` for consistency:
+  - **vite.config.ts**:
+    - Uses `@tanstack/react-start/plugin/vite` (instead of `@tanstack/start/plugin/vite`)
+    - Includes `nitroV2Plugin()` for Nitro v2 support
+    - Uses `viteTsConfigPaths` with proper projects configuration
+    - Removed hardcoded `srcDirectory` and `routesDirectory` (uses TanStack defaults)
+  - **tsconfig.json**:
+    - Updated `include` to `["**/*.ts", "**/*.tsx"]`
+    - Added `types: ["vite/client"]`
+    - Added `verbatimModuleSyntax: false`
+    - Added `noUncheckedSideEffectImports: true`
+    - Added path aliases: `"@/*": ["./src/*"]`
+  - **Dependencies**: Updated to latest TanStack packages
+    - `@tanstack/nitro-v2-vite-plugin: ^1.132.31`
+    - `@tanstack/react-router-ssr-query: ^1.131.7`
+    - `@tanstack/react-devtools: ^0.7.0`
+    - All TanStack packages updated to `^1.132.0`
+    - React updated to `^19.2.0`
+    - Vite updated to `^7.1.7`
+  - **Package Scripts**:
+    - `dev: "vite dev --port 3000"`
+    - `build: "vite build"`
+    - `serve: "vite preview"` (replaced `start`)
+
+  **Removed Backup Functionality**
   - Disabled automatic backup creation during migration
   - Users should use git or their own backup solution before running migrations
   - No backup folders will be created in the parent directory
@@ -23,6 +49,46 @@
   // After
   <img src="/logo.svg" alt="Logo" width={100} height={20} />
   ```
+
+  **Dynamic CLI Version**
+  - CLI now reads version from `package.json` dynamically
+  - No need to manually update version in `cli.ts` file
+  - Version stays in sync automatically
+
+## 1.0.3
+
+### Patch Changes
+
+- **Updated Configuration to Match TanStack Template** ✅
+  - **vite.config.ts**: Now uses `@tanstack/react-start/plugin/vite` and includes `nitroV2Plugin()`
+  - **tsconfig.json**: Updated with exact configuration from tanstack-template including path aliases (`@/*`)
+  - **Dependencies**: Updated to use latest TanStack packages including `@tanstack/nitro-v2-vite-plugin`, `@tanstack/react-router-ssr-query`
+  - **Scripts**: Changed to match tanstack-template (`vite dev --port 3000`, `vite preview`)
+  - All configurations now reference the working tanstack-template for consistency
+
+- **Removed Backup Functionality** 🗑️
+  - Disabled automatic backup creation during migration
+  - Users should use git or their own backup solution before running migrations
+  - No backup folders will be created in the parent directory
+
+- **Next.js Image Component Transformation** ✅
+  - Added AST transformer to convert Next.js `<Image>` components to standard HTML `<img>` tags
+  - Automatically removes Next.js-specific props (`priority`, `fill`, `quality`, `placeholder`, `blurDataURL`, `loading`)
+  - Preserves standard HTML attributes (`src`, `alt`, `width`, `height`, `className`)
+
+  Example transformation:
+
+  ```tsx
+  // Before
+  <Image src="/logo.svg" alt="Logo" width={100} height={20} priority />
+
+  // After
+  <img src="/logo.svg" alt="Logo" width={100} height={20} />
+  ```
+
+- **Dynamic CLI Version** ✅
+  - CLI now reads version from package.json dynamically
+  - No need to manually update version in cli.ts file
 
 ## 1.0.2
 
