@@ -310,11 +310,57 @@ function createRootDocumentFunction(
   );
 
   if (bodyJSX) {
+    let hasHeadElement = false;
+
+    // First pass: check if head element exists
+    traverse(
+      t.file(t.program([t.expressionStatement(bodyJSX)])),
+      {
+        JSXElement(path) {
+          if (
+            t.isJSXElement(path.node) &&
+            t.isJSXIdentifier(path.node.openingElement.name) &&
+            path.node.openingElement.name.name === "head"
+          ) {
+            hasHeadElement = true;
+          }
+        },
+      },
+      undefined,
+      bodyJSX,
+    );
+
     // Transform the body JSX
     traverse(
       t.file(t.program([t.expressionStatement(bodyJSX)])),
       {
         JSXElement(path) {
+          // Find html element and add head if missing
+          if (
+            t.isJSXElement(path.node) &&
+            t.isJSXIdentifier(path.node.openingElement.name) &&
+            path.node.openingElement.name.name === "html" &&
+            !hasHeadElement
+          ) {
+            // Create head element with HeadContent
+            const headElement = t.jsxElement(
+              t.jsxOpeningElement(t.jsxIdentifier("head"), [], false),
+              t.jsxClosingElement(t.jsxIdentifier("head")),
+              [
+                t.jsxElement(
+                  t.jsxOpeningElement(t.jsxIdentifier("HeadContent"), [], true),
+                  null,
+                  [],
+                  true,
+                ),
+              ],
+              false,
+            );
+
+            // Insert head as first child of html
+            path.node.children.unshift(headElement);
+          }
+
           // Find body element
           if (
             t.isJSXElement(path.node) &&

@@ -1,15 +1,48 @@
 # hopr
 
+## 1.0.8
+
+### Patch Changes
+
+- **Fixed Head Element Generation in Root Route**
+  - **Head Element Creation**: Automatically creates `<head><HeadContent /></head>` if missing from Next.js layout
+  - **Previous Issue**: Next.js layouts don't have explicit `<head>` tags (Next.js handles head metadata separately via the Metadata API), causing the transformed RootDocument to be missing the `<head>` element entirely
+  - **Solution**:
+    - Two-pass AST traversal approach: First pass checks if `<head>` element exists in the JSX
+    - If missing, creates `<head><HeadContent /></head>` and inserts as first child of `<html>` element
+    - If exists, adds `<HeadContent />` to the existing head element
+  - **Element Order**: Ensures proper HTML structure: `<html lang="en">` → `<head>` → `<body>`
+  - **Impact**: RootDocument output now matches tanstack-template exactly with complete HTML structure
+
+  Example output:
+
+  ```tsx
+  function RootDocument({ children }: { children: React.ReactNode }) {
+    return (
+      <html lang="en">
+        <head>
+          <HeadContent />
+        </head>
+        <body>
+          {children}
+          <TanStackDevtools ... />
+          <Scripts />
+        </body>
+      </html>
+    );
+  }
+  ```
+
 ## 1.0.7
 
 ### Patch Changes
 
-- **Fixed CSS Import in Root Route**
-  - **Corrected Import**: Now generates `import appCss from "./globals.css?url"` as default import
-  - **Previous Issue**: CSS imports were not consistently using default import specifier
-  - **Implementation**: Updates existing `import "./globals.css"` to use default import with `?url` suffix
-  - **Head Element Structure**: Ensures `<head><HeadContent /></head>` is properly placed before `<body>` in RootDocument
-  - **Impact**: Root route (\_\_root.tsx) now matches tanstack-template structure exactly
+- **Fixed Head Element Generation in Root Route** ✅
+  - **Head Element Creation**: Automatically creates `<head><HeadContent /></head>` if missing from Next.js layout
+  - **Previous Issue**: Next.js layouts don't have explicit `<head>` tags, causing missing head element in output
+  - **Solution**: Detects if `<head>` exists; if not, inserts it as first child of `<html>` before `<body>`
+  - **Element Order**: Ensures proper structure: `<html>` → `<head>` → `<body>`
+  - **Impact**: RootDocument now matches tanstack-template exactly with proper HTML structure
 
 ## 1.0.6
 

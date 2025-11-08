@@ -1,6 +1,6 @@
 {
   "name": "hopr",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "A powerful CLI tool for migrating fullstack web projects between frameworks",
   "type": "module",
   "bin": {
