@@ -9,7 +9,7 @@ import {
   transformLayoutToRoot,
   transformPageToRoute,
 } from "../nextjs/transformers/index.js";
-import { logger, normalizePath } from "../../utils/index.js";
+import { normalizePath } from "../../utils/index.js";
 
 /**
  * Transform Next.js structure to TanStack Start
@@ -45,7 +45,7 @@ export async function transformToTanStackStart(
   const devDependencies = generateDevDependencies(structure);
   const removeDependencies = ["next"];
 
-  // Files to delete
+  // Files to delete - include old Next.js route files
   const filesToDelete = [
     "next.config.js",
     "next.config.mjs",
@@ -53,6 +53,13 @@ export async function transformToTanStackStart(
     "postcss.config.js",
     "postcss.config.mjs",
   ];
+
+  // Add original source files to delete list
+  for (const route of structure.routes) {
+    if (route.sourcePath && !filesToDelete.includes(route.sourcePath)) {
+      filesToDelete.push(route.sourcePath);
+    }
+  }
 
   return {
     framework: "tanstack-start",
@@ -90,7 +97,8 @@ async function transformRoute(
     case "layout": {
       // Only transform root layout
       if (pattern === "/") {
-        targetPath = path.join(structure.appDir, "__root.tsx");
+        // TanStack Start uses src/routes/__root.tsx
+        targetPath = "src/routes/__root.tsx";
         transformedContent = transformLayoutToRoot(content);
       } else {
         // Nested layouts are not directly supported in the same way
@@ -100,12 +108,8 @@ async function transformRoute(
     }
 
     case "page": {
-      targetPath = convertPagePath(
-        pattern,
-        params,
-        isCatchAll,
-        structure.appDir
-      );
+      // Convert to src/routes/ structure
+      targetPath = convertPagePath(pattern, params, isCatchAll);
       const routePath = convertToTanStackRoutePath(pattern, params, isCatchAll);
       transformedContent = transformPageToRoute(content, routePath);
       break;
@@ -113,11 +117,7 @@ async function transformRoute(
 
     case "api": {
       // API routes need special handling
-      targetPath = path.join(
-        structure.appDir,
-        "api",
-        normalizePath(pattern) + ".ts"
-      );
+      targetPath = path.join("src/routes/api", normalizePath(pattern) + ".ts");
       transformedContent = transformApiRoute(content);
       break;
     }
@@ -141,15 +141,15 @@ async function transformRoute(
 
 /**
  * Convert Next.js page path to TanStack Start path
+ * All routes go into src/routes/
  */
 function convertPagePath(
   pattern: string,
   params: string[] | undefined,
-  isCatchAll: boolean | undefined,
-  appDir: string
+  isCatchAll: boolean | undefined
 ): string {
   if (pattern === "/") {
-    return path.join(appDir, "index.tsx");
+    return "src/routes/index.tsx";
   }
 
   let segments = pattern.split("/").filter(Boolean);
@@ -170,10 +170,10 @@ function convertPagePath(
   const fileName = segments.pop() || "index";
   const filePath =
     segments.length > 0
-      ? path.join(appDir, ...segments, `${fileName}.tsx`)
-      : path.join(appDir, `${fileName}.tsx`);
+      ? path.join("src/routes", ...segments, `${fileName}.tsx`)
+      : path.join("src/routes", `${fileName}.tsx`);
 
-  return filePath;
+  return normalizePath(filePath);
 }
 
 /**
@@ -227,17 +227,13 @@ function generateViteConfig(structure: ProjectStructure): {
   path: string;
   content: string;
 } {
-  const routesDir = structure.useSrc ? "app" : "app";
-  const srcDir = structure.useSrc ? "src" : "src";
-
   return {
     path: "vite.config.ts",
     content: `import { defineConfig } from 'vite'
-import { tanstackStart } from '@tanstack/react-start/plugin/vite'
+import { tanstackStart } from '@tanstack/start/vite'
 import viteReact from '@vitejs/plugin-react'
 import tsconfigPaths from 'vite-tsconfig-paths'
-import tailwindcss from '@tailwindcss/vite'
-
+${structure.metadata?.hasTailwind ? "import tailwindcss from '@tailwindcss/vite'\n" : ""}
 export default defineConfig({
   server: {
     port: 3000,
@@ -245,12 +241,7 @@ export default defineConfig({
   plugins: [
     ${structure.metadata?.hasTailwind ? "tailwindcss()," : ""}
     tsconfigPaths(),
-    tanstackStart({
-      srcDirectory: '${srcDir}',
-      router: {
-        routesDirectory: '${routesDir}',
-      },
-    }),
+    tanstackStart(),
     viteReact(),
   ],
 })
@@ -321,10 +312,12 @@ function generateDependencies(
   structure: ProjectStructure
 ): Record<string, string> {
   return {
-    "@tanstack/react-router": "^2.0.0",
-    "@tanstack/react-start": "^2.0.0",
+    "@tanstack/react-router": "^1.98.0",
+    "@tanstack/start": "^1.98.0",
+    "@vinxi/react": "^0.2.4",
     react: structure.dependencies["react"] || "^19.0.0",
     "react-dom": structure.dependencies["react-dom"] || "^19.0.0",
+    vinxi: "^0.5.3",
   };
 }
 
@@ -335,16 +328,19 @@ function generateDevDependencies(
   structure: ProjectStructure
 ): Record<string, string> {
   const devDeps: Record<string, string> = {
-    "@tanstack/react-router-plugin": "^2.0.0",
-    "@vitejs/plugin-react": "latest",
-    vite: "latest",
-    "vite-tsconfig-paths": "latest",
+    "@tanstack/router-devtools": "^1.98.0",
+    "@tanstack/router-plugin": "^1.98.2",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    vite: "^6.0.7",
+    "vite-tsconfig-paths": "^5.1.4",
     typescript: structure.devDependencies["typescript"] || "^5.0.0",
   };
 
   if (structure.metadata?.hasTailwind) {
-    devDeps["@tailwindcss/vite"] = "latest";
-    devDeps["tailwindcss"] = "latest";
+    devDeps["@tailwindcss/vite"] = "^4.0.0";
+    devDeps["tailwindcss"] = "^4.0.0";
   }
 
   return devDeps;

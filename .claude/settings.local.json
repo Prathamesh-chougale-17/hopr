@@ -5,7 +5,8 @@
       "Bash(bun run build:*)",
       "Bash(bun run lint:*)",
       "Bash(bun run check-types:*)",
-      "Bash(bun --version:*)"
+      "Bash(bun --version:*)",
+      "Bash(node:*)"
     ],
     "deny": [],
     "ask": []

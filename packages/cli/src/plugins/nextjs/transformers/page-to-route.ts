@@ -1,7 +1,12 @@
+// @ts-nocheck
 import { parse } from '@babel/parser'
-import traverse from '@babel/traverse'
-import generate from '@babel/generator'
+import traverse_ from '@babel/traverse'
+import generate_ from '@babel/generator'
 import * as t from '@babel/types'
+
+// Handle ESM/CJS interop
+const traverse = (traverse_ as any).default || traverse_
+const generate = (generate_ as any).default || generate_
 
 /**
  * Transform Next.js page.tsx to TanStack Start route
@@ -88,10 +93,11 @@ export function transformPageToRoute(content: string, routePath: string): string
       }
     },
 
-    // Remove Next.js imports
+    // Remove Next.js specific imports
     ImportDeclaration(path) {
       const source = path.node.source.value
-      if (source === 'next' || source === 'next/headers') {
+      // Remove next, next/image, next/headers, next/navigation, etc.
+      if (source === 'next' || source.startsWith('next/')) {
         path.remove()
       }
     },

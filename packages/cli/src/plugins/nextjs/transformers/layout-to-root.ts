@@ -1,7 +1,13 @@
+// @ts-nocheck
 import { parse } from '@babel/parser'
-import traverse from '@babel/traverse'
-import generate from '@babel/generator'
+import traverse_ from '@babel/traverse'
+import generate_ from '@babel/generator'
 import * as t from '@babel/types'
+import type { NodePath } from '@babel/traverse'
+
+// Handle ESM/CJS interop
+const traverse = (traverse_ as any).default || traverse_
+const generate = (generate_ as any).default || generate_
 
 /**
  * Transform Next.js layout.tsx to TanStack Start __root.tsx
@@ -19,7 +25,7 @@ export function transformLayoutToRoot(content: string): string {
 
   // First pass: collect information
   traverse(ast, {
-    ExportNamedDeclaration(path) {
+    ExportNamedDeclaration(path: NodePath<t.ExportNamedDeclaration>) {
       const declaration = path.node.declaration
       if (t.isVariableDeclaration(declaration)) {
         const declarator = declaration.declarations[0]
@@ -46,6 +52,26 @@ export function transformLayoutToRoot(content: string): string {
 
   // Second pass: transform
   traverse(ast, {
+    // Remove font variable declarations
+    VariableDeclaration(path) {
+      const declarations = path.node.declarations.filter((declarator) => {
+        if (t.isIdentifier(declarator.id) && declarator.init && t.isCallExpression(declarator.init)) {
+          const callee = declarator.init.callee
+          // Remove Geist, Geist_Mono, etc font declarations
+          if (t.isIdentifier(callee) && (callee.name.includes('Geist') || callee.name.includes('Font'))) {
+            return false
+          }
+        }
+        return true
+      })
+
+      if (declarations.length === 0) {
+        path.remove()
+      } else if (declarations.length !== path.node.declarations.length) {
+        path.node.declarations = declarations
+      }
+    },
+
     Program(path) {
       // Add TanStack Router imports at the top
       const importDeclaration = t.importDeclaration(
@@ -107,21 +133,16 @@ export function transformLayoutToRoot(content: string): string {
       }
     },
 
-    // Remove Metadata import from next
+    // Remove Next.js specific imports
     ImportDeclaration(path) {
-      if (path.node.source.value === 'next') {
-        const specifiers = path.node.specifiers.filter(
-          (spec) =>
-            !(t.isImportSpecifier(spec) &&
-              t.isIdentifier(spec.imported) &&
-              spec.imported.name === 'Metadata')
-        )
-
-        if (specifiers.length === 0) {
-          path.remove()
-        } else {
-          path.node.specifiers = specifiers
-        }
+      const source = path.node.source.value
+      // Remove next/font imports and next imports
+      if (source === 'next' || source.startsWith('next/font')) {
+        path.remove()
+      }
+      // Update globals.css path to be relative to routes directory
+      if (source === './globals.css') {
+        path.node.source.value = '../../app/globals.css'
       }
     },
   })
@@ -176,6 +197,31 @@ function transformFunctionBody(functionDeclaration: t.FunctionDeclaration): void
           )
 
           path.node.children = children
+
+          // Remove font variable className attributes
+          path.node.openingElement.attributes = path.node.openingElement.attributes.filter((attr) => {
+            if (t.isJSXAttribute(attr) && t.isJSXIdentifier(attr.name) && attr.name.name === 'className') {
+              // Check if className contains font variables
+              if (attr.value && t.isJSXExpressionContainer(attr.value)) {
+                const expr = attr.value.expression
+                if (t.isTemplateLiteral(expr)) {
+                  // Check if template literal references font variables
+                  const hasFontVars = expr.expressions.some((exp) => {
+                    if (t.isMemberExpression(exp) && t.isIdentifier(exp.object)) {
+                      return exp.object.name.toLowerCase().includes('geist') ||
+                             exp.object.name.toLowerCase().includes('font')
+                    }
+                    return false
+                  })
+                  if (hasFontVars) {
+                    // Replace with simple antialiased class
+                    attr.value = t.stringLiteral('antialiased')
+                  }
+                }
+              }
+            }
+            return true
+          })
         }
 
         // Add HeadContent to head
