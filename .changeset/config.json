@@ -8,9 +8,6 @@
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
   "ignore": [
-    "@repo/*",
-    "web",
-    "docs",
-    "tanstack-template"
+    "@repo/*"
   ]
 }
