@@ -35,10 +35,10 @@ export async function analyzeNextJsProject(
   // Find all routes
   const routes = await findRoutes(appDir, projectPath);
 
-  // Detect metadata
+  // Detect metadata - Check for Tailwind v4 in package.json instead of config files
   const hasTailwind =
-    (await fileExists(path.join(projectPath, "tailwind.config.ts"))) ||
-    (await fileExists(path.join(projectPath, "tailwind.config.js")));
+    Boolean(packageJson.dependencies?.tailwindcss) ||
+    Boolean(packageJson.devDependencies?.tailwindcss);
 
   const hasTypescript = await fileExists(
     path.join(projectPath, "tsconfig.json"),

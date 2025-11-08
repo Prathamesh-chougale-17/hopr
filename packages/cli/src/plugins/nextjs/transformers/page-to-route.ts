@@ -283,14 +283,17 @@ function createRouteExport(
     // Note: We'll add a comment in the generated code suggesting to add loader
   }
 
+  // Create the correct syntax: createFileRoute(routePath)({ component })
   const routeExport = t.exportNamedDeclaration(
     t.variableDeclaration("const", [
       t.variableDeclarator(
         t.identifier("Route"),
-        t.callExpression(t.identifier("createFileRoute"), [
-          t.stringLiteral(routePath),
-          t.objectExpression(properties),
-        ]),
+        t.callExpression(
+          t.callExpression(t.identifier("createFileRoute"), [
+            t.stringLiteral(routePath),
+          ]),
+          [t.objectExpression(properties)],
+        ),
       ),
     ]),
   );

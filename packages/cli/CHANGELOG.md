@@ -1,8 +1,33 @@
 # hopr
 
+## 1.0.6
+
+### Patch Changes
+
+- **Fixed Route Export Syntax**
+  - **Corrected**: Now generates `export const Route = createFileRoute("/")({ component: Home })`
+  - **Previous Issue**: Was generating `createFileRoute("/", { component: Home })` (incorrect syntax)
+  - **Impact**: Routes now use the correct TanStack Router v1.132.0 API syntax with double function call
+
+  **Fixed Tailwind v4 Detection**
+  - **New Detection Method**: Checks for `tailwindcss` in package.json dependencies/devDependencies
+  - **Reason**: Tailwind v4 no longer requires tailwind.config.ts/js configuration files
+  - **Previous Method**: Was checking for existence of tailwind.config.ts/js files
+  - **Impact**: CLI now properly detects Tailwind CSS v4 installations and includes Tailwind plugin in vite.config.ts
+
 ## 1.0.5
 
 ### Patch Changes
+
+- **Fixed Route Export Syntax** ✅
+  - **Corrected Page Routes**: Now generates `export const Route = createFileRoute("/")({ component: Home })` (correct syntax)
+  - **Previous Issue**: Was generating `createFileRoute("/", { component: Home })` (incorrect)
+  - Matches TanStack Router v1.132.0 API exactly
+
+- **Fixed Tailwind v4 Detection** ✅
+  - **New Detection Method**: Checks for `tailwindcss` in package.json dependencies/devDependencies
+  - **Reason**: Tailwind v4 no longer requires tailwind.config.ts/js files
+  - **Impact**: Properly detects Tailwind CSS v4 installations
 
 - **Updated Root Route Pattern to Match TanStack Template**
 
