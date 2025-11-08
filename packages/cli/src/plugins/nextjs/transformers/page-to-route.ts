@@ -101,6 +101,30 @@ export function transformPageToRoute(content: string, routePath: string): string
         path.remove()
       }
     },
+
+    // Transform Next.js Image to standard img
+    JSXElement(path) {
+      const openingElement = path.node.openingElement
+      if (t.isJSXIdentifier(openingElement.name) && openingElement.name.name === 'Image') {
+        // Change to lowercase img
+        openingElement.name.name = 'img'
+
+        // Also update closing element if it exists
+        if (path.node.closingElement && t.isJSXIdentifier(path.node.closingElement.name)) {
+          path.node.closingElement.name.name = 'img'
+        }
+
+        // Remove Next.js specific props (priority, fill, etc.)
+        openingElement.attributes = openingElement.attributes.filter((attr) => {
+          if (t.isJSXAttribute(attr) && t.isJSXIdentifier(attr.name)) {
+            const propName = attr.name.name
+            // Remove Next.js specific Image props
+            return !['priority', 'fill', 'quality', 'placeholder', 'blurDataURL', 'loading'].includes(propName as string)
+          }
+          return true
+        })
+      }
+    },
   })
 
   const output = generate(ast, {
