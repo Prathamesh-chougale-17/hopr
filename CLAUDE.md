@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Turborepo monorepo containing multiple applications and shared packages. The repository uses Bun as the package manager and Turbo for build orchestration.
+This is a Turborepo monorepo containing template applications demonstrating Next.js and TanStack Start. The repository uses Bun as the package manager and Turbo for build orchestration. The main product, `hopr`, is a CLI tool published to npm that migrates projects between frameworks.
 
 ## Package Manager
 
@@ -22,20 +22,19 @@ This is a Turborepo monorepo containing multiple applications and shared package
 bun run dev
 
 # Run specific app with Turbo filter
-turbo dev --filter=web          # Next.js web app on port 3000
-turbo dev --filter=docs         # Next.js docs app on port 3001
+turbo dev --filter=next-template      # Next.js app on port 3000
 turbo dev --filter=tanstack-template  # TanStack Start app on port 3000
 ```
 
 ### Building
 
 ```bash
-# Build all apps and packages
+# Build all apps
 bun run build
 
 # Build specific app
-turbo build --filter=web
-turbo build --filter=docs
+turbo build --filter=next-template
+turbo build --filter=tanstack-template
 ```
 
 ### Linting and Type Checking
@@ -54,66 +53,90 @@ bun run format
 ### Testing
 
 ```bash
+# Run all tests
+bun run test
+
 # Run tests in tanstack-template app
 cd apps/tanstack-template
 bun run test
+```
+
+### Version Management (Changesets)
+
+```bash
+# Create a changeset (when making changes that should be released)
+bun changeset
+
+# Bump versions based on changesets
+bun changeset version
+
+# Publish packages to npm (after building)
+bun run release
 ```
 
 ## Repository Structure
 
 ### Applications (`apps/`)
 
-1. **web** - Next.js application (port 3000)
+1. **next-template** - Next.js template application
    - Uses Next.js 16 with App Router
-   - Depends on `@repo/ui` shared component library
+   - React 19.2.0
+   - Tailwind CSS v4
+   - Runs on port 3000
 
-2. **docs** - Next.js documentation app (port 3001)
-   - Uses Next.js 16 with App Router
-   - Depends on `@repo/ui` shared component library
-
-3. **tanstack-template** - TanStack Start application (port 3000)
+2. **tanstack-template** - TanStack Start template application
    - Uses Vite, TanStack Router, and TanStack Start
    - File-based routing in `src/routes/`
    - Uses Nitro v2 for server functionality
-   - Has its own testing setup with Vitest
-   - Uses shadcn/ui components (install with `pnpx shadcn@latest add <component>`)
+   - Testing setup with Vitest
+   - shadcn/ui components (install with `bunx shadcn@latest add <component>`)
+   - Runs on port 3000
 
 ### Packages (`packages/`)
 
-1. **cli** - Framework migration CLI tool (`hopr`)
-   - Migrates projects between frameworks (Next.js → TanStack Start)
-   - Auto-detects frameworks and package managers
-   - Built with Commander, Babel, and Prettier
-   - Run with: `cd packages/cli && bun run src/index.ts [command]`
-   - See [packages/cli/USAGE.md](packages/cli/USAGE.md) for detailed usage
-
-2. **@repo/ui** - Shared React component library
-   - Components: button, card, code
-   - Exports components from `src/*.tsx`
-   - Generate new components: `turbo gen react-component`
-
-3. **@repo/eslint-config** - Shared ESLint configurations
+1. **@repo/eslint-config** - Shared ESLint configurations
    - Exports: `./base`, `./next-js`, `./react-internal`
-
-4. **@repo/typescript-config** - Shared TypeScript configurations
-   - Base, Next.js, and React library configs
 
 ## Architecture Notes
 
 ### Turborepo Configuration
 
 - Located in `turbo.json`
-- Tasks: `build`, `lint`, `check-types`, `dev`
-- Build task caches `.next/**` output (excludes cache)
+- Tasks: `build`, `lint`, `check-types`, `test`, `dev`
+- Build task caches `.next/**` and `dist/**` outputs
+- Test task depends on build and caches `coverage/**`
 - Dev task runs in persistent mode with no caching
 
-### Workspace Dependencies
+### hopr CLI Tool (Published to npm)
 
-- Next.js apps (`web`, `docs`) share the `@repo/ui` component library
-- All apps use shared ESLint and TypeScript configs from packages
-- Workspace dependencies are declared with `"*"` version specifier
+The `hopr` CLI is a **published npm package** (not a workspace package). It's the main product of this repository and automates framework migrations.
 
-### TanStack Start vs Next.js
+**Installation:**
+```bash
+npm install -g hopr
+# or run without installing
+npx hopr@latest migrate ./my-project
+```
+
+**Key Features:**
+- Auto-detects frameworks (Next.js, TanStack Start) and package managers
+- Safe by default: Creates backups in `.hopr-backup/`
+- AST-based code transformations using Babel
+- Intelligent file structure reorganization
+- Currently supports: Next.js → TanStack Start
+
+**Testing hopr locally:**
+The CLI package has been removed from the workspace. To test local changes to the CLI:
+1. Clone the hopr CLI repository separately
+2. Build and publish to npm (or use `npm link`)
+3. Install globally or use `npx` to test
+
+**Version Management:**
+- Uses Changesets for version management
+- See [RELEASE_GUIDE.md](RELEASE_GUIDE.md) for publishing workflow
+- See [DEPRECATION.md](DEPRECATION.md) for information about deprecated versions
+
+### Migration Guide
 
 The repository contains a migration guide in [docs/nextjs-to-tanstack-start.md](docs/nextjs-to-tanstack-start.md) showing how to convert Next.js apps to TanStack Start. Key differences:
 
@@ -129,50 +152,24 @@ cd apps/tanstack-template
 bunx shadcn@latest add <component-name>
 ```
 
-## Development Workflow
+## Release Workflow
 
-1. **Adding new apps:** Create in `apps/` directory and add to workspace config
-2. **Shared code:** Add to `packages/` for use across multiple apps
-3. **Type checking:** Run before committing to catch TypeScript errors
-4. **Turbo filters:** Use `--filter=<app-name>` to run commands for specific apps
+This project uses Changesets for version management and releases:
 
-## hopr CLI Tool
+1. **Make changes** - Develop features/fixes in the templates
+2. **Create changeset** - Run `bun changeset` and document changes
+3. **Version packages** - Run `bun changeset version` to bump versions
+4. **Publish** - Run `bun run release` to build and publish to npm
 
-The `hopr` CLI tool automates framework migrations:
+See [RELEASE_GUIDE.md](RELEASE_GUIDE.md) for detailed release instructions, especially for major version releases.
 
-### Quick Start
-
-```bash
-cd packages/cli
-bun install
-bun run src/index.ts detect ../../apps/web     # Detect framework
-bun run src/index.ts migrate ../../apps/web    # Migrate project
-```
-
-### Commands
-
-- `hopr detect [path]` - Detect framework and structure
-- `hopr migrate <path> [options]` - Migrate between frameworks
-  - `--dry-run` - Preview changes without applying
-  - `--from <framework>` - Source framework (auto-detected)
-  - `--to <framework>` - Target framework (default: tanstack-start)
-  - `-y, --yes` - Skip confirmation
-
-### Migration Features
-
-- **Auto-detection:** Identifies framework and package manager
-- **Safe by default:** Creates backups in `.hopr-backup/`
-- **Smart transformations:** AST-based code modifications
-- **File structure:** Renames and reorganizes routes automatically
-- **Configuration:** Generates Vite config, router setup, etc.
-
-See [packages/cli/USAGE.md](packages/cli/USAGE.md) for complete documentation.
+**Note:** The `hopr` CLI tool is maintained separately and is not part of this workspace's release process.
 
 ## Important Notes
 
 - Node.js version requirement: >=18
-- The repository uses TypeScript 5.9.2 across all packages (CLI uses 5.9.2)
+- TypeScript 5.9.2+ is used across the repository
 - All packages use ES modules (`"type": "module"`)
-- Next.js apps use React 19.2.0
+- Both templates use React 19.2.0
 - TanStack template uses file-based routing with auto-generated route tree
-- CLI tool uses Babel for AST transformations and Prettier for code formatting
+- The repository's primary purpose is to provide template applications showcasing the migration target (TanStack Start) and source (Next.js) for the `hopr` CLI tool
