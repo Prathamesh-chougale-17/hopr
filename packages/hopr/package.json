@@ -1,0 +1,72 @@
+{
+  "name": "hopr",
+  "version": "1.0.0",
+  "description": "A powerful CLI tool for migrating fullstack web projects between frameworks",
+  "type": "module",
+  "bin": {
+    "hopr": "./dist/cli.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "templates"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "check-types": "tsc --noEmit",
+    "test": "echo \"Tests not yet implemented\""
+  },
+  "keywords": [
+    "cli",
+    "migration",
+    "framework",
+    "nextjs",
+    "tanstack",
+    "tanstack-start",
+    "code-migration",
+    "tooling"
+  ],
+  "author": "hopr",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/hopr.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@babel/generator": "7.28.5",
+    "@babel/parser": "7.28.5",
+    "@babel/traverse": "7.28.5",
+    "@babel/types": "7.28.5",
+    "commander": "14.0.2",
+    "fs-extra": "11.3.2",
+    "glob": "11.0.3",
+    "ora": "9.0.0",
+    "picocolors": "1.1.1",
+    "prompts": "2.4.2",
+    "recast": "0.23.11",
+    "which-pm": "3.0.1"
+  },
+  "devDependencies": {
+    "@types/babel__generator": "7.27.0",
+    "@types/babel__traverse": "7.28.0",
+    "@types/fs-extra": "11.0.4",
+    "@types/node": "24.10.0",
+    "@types/prompts": "2.4.9",
+    "tsup": "8.5.0",
+    "typescript": "5.9.3"
+  }
+}
