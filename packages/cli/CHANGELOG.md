@@ -1,5 +1,25 @@
 # hopr
 
+## 1.0.2
+
+### Patch Changes
+
+- **Next.js Image Component Transformation** ✅
+  - **Problem:** Next.js `<Image>` components were not being transformed during migration, leaving undefined component references in the migrated code
+  - **Solution:** Added AST transformer to convert Next.js `<Image>` components to standard HTML `<img>` tags
+  - **Features:**
+    - Automatically converts `<Image>` to `<img>` in all page components
+    - Removes Next.js-specific props (`priority`, `fill`, `quality`, `placeholder`, `blurDataURL`, `loading`)
+    - Preserves standard HTML attributes (`src`, `alt`, `width`, `height`, `className`)
+  - **Example:**
+    ```tsx
+    // Before
+    <Image src="/logo.svg" alt="Logo" width={100} height={20} priority />
+
+    // After
+    <img src="/logo.svg" alt="Logo" width={100} height={20} />
+    ```
+
 ## 1.0.1
 
 ### Patch Changes
