@@ -115,7 +115,7 @@ export class NextJsToTanStackMigrator extends BaseMigrator {
         this.result.filesModified.push("package.json");
       }
 
-      // Step 5: Transform file structure
+      // Step 5: Transform file structure (keep in app directory)
       currentStep++;
       logger.step(currentStep, totalSteps, "Transforming file structure...");
       if (!this.options.dryRun) {
@@ -124,7 +124,6 @@ export class NextJsToTanStackMigrator extends BaseMigrator {
         await fileTransformer.transformHomePage();
         await fileTransformer.transformDynamicRoutes();
         await fileTransformer.transformCatchAllRoutes();
-        await fileTransformer.moveRemainingRoutes();
         await fileTransformer.moveCssFiles();
       }
 
@@ -136,37 +135,37 @@ export class NextJsToTanStackMigrator extends BaseMigrator {
         const rootLayoutPath = path.join(
           this.projectPath,
           "src",
-          "routes",
+          "app",
           "__root.tsx"
         );
         if (await FileSystem.exists(rootLayoutPath)) {
           await CodeTransformer.transformRootLayout(rootLayoutPath);
-          this.result.filesModified.push("src/routes/__root.tsx");
+          this.result.filesModified.push("src/app/__root.tsx");
         }
 
         // Transform index page
         const indexPath = path.join(
           this.projectPath,
           "src",
-          "routes",
+          "app",
           "index.tsx"
         );
         if (await FileSystem.exists(indexPath)) {
           await CodeTransformer.transformRoutePage(indexPath, "/");
-          this.result.filesModified.push("src/routes/index.tsx");
+          this.result.filesModified.push("src/app/index.tsx");
         }
 
         // Transform other route files
         const routeFiles = await FileSystem.findFiles("**/*.tsx", {
-          cwd: path.join(this.projectPath, "src", "routes"),
+          cwd: path.join(this.projectPath, "src", "app"),
           ignore: ["__root.tsx", "index.tsx"],
         });
 
         for (const file of routeFiles) {
-          const fullPath = path.join(this.projectPath, "src", "routes", file);
+          const fullPath = path.join(this.projectPath, "src", "app", file);
           const routePath = CodeTransformer.getRoutePathFromFile(fullPath);
           await CodeTransformer.transformRoutePage(fullPath, routePath);
-          this.result.filesModified.push(`src/routes/${file}`);
+          this.result.filesModified.push(`src/app/${file}`);
         }
       }
 

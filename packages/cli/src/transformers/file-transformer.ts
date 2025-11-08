@@ -13,7 +13,7 @@ export class FileTransformer {
   constructor(private projectPath: string) {}
 
   /**
-   * Rename layout.tsx to __root.tsx
+   * Rename layout.tsx to __root.tsx (keep in app directory)
    */
   async transformRootLayout(): Promise<void> {
     const possiblePaths = [
@@ -24,15 +24,11 @@ export class FileTransformer {
     for (const layoutPath of possiblePaths) {
       if (await FileSystem.exists(layoutPath)) {
         const dir = FileSystem.dirname(layoutPath);
-        const routesDir = dir.replace(/[/\\]app$/, "/routes");
-        const newPath = path.join(routesDir, "__root.tsx");
+        const newPath = path.join(dir, "__root.tsx");
 
         logger.info(`Transforming root layout: ${layoutPath} → ${newPath}`);
 
-        // Ensure routes directory exists
-        await FileSystem.ensureDir(routesDir);
-
-        // Move file
+        // Move file (rename in same directory)
         await FileSystem.move(layoutPath, newPath);
         return;
       }
@@ -42,7 +38,7 @@ export class FileTransformer {
   }
 
   /**
-   * Rename page.tsx to index.tsx
+   * Rename page.tsx to index.tsx (keep in app directory)
    */
   async transformHomePage(): Promise<void> {
     const possiblePaths = [
@@ -53,15 +49,11 @@ export class FileTransformer {
     for (const pagePath of possiblePaths) {
       if (await FileSystem.exists(pagePath)) {
         const dir = FileSystem.dirname(pagePath);
-        const routesDir = dir.replace(/[/\\]app$/, "/routes");
-        const newPath = path.join(routesDir, "index.tsx");
+        const newPath = path.join(dir, "index.tsx");
 
         logger.info(`Transforming home page: ${pagePath} → ${newPath}`);
 
-        // Ensure routes directory exists
-        await FileSystem.ensureDir(routesDir);
-
-        // Move file
+        // Move file (rename in same directory)
         await FileSystem.move(pagePath, newPath);
         return;
       }
@@ -71,7 +63,8 @@ export class FileTransformer {
   }
 
   /**
-   * Transform dynamic routes: [slug]/page.tsx → $slug/index.tsx
+   * Transform dynamic routes: [slug]/page.tsx → $slug.tsx
+   * Example: posts/[slug]/page.tsx → posts/$slug.tsx
    */
   async transformDynamicRoutes(): Promise<void> {
     const appDirs = [
@@ -81,8 +74,6 @@ export class FileTransformer {
 
     for (const appDir of appDirs) {
       if (await FileSystem.exists(appDir)) {
-        const routesDir = appDir.replace(/[/\\]app$/, "/routes");
-
         // Find all page.tsx files in dynamic routes
         const files = await FileSystem.findFiles("**/[*]/page.tsx", {
           cwd: appDir,
@@ -90,19 +81,21 @@ export class FileTransformer {
 
         for (const file of files) {
           const fullPath = path.join(appDir, file);
-          const relativePath = path.relative(appDir, fullPath);
+          const dir = FileSystem.dirname(fullPath);
+          const parentDir = FileSystem.dirname(dir);
 
-          // Transform [slug] → $slug
-          const newRelativePath = relativePath
-            .replace(/\[([^\]]+)\]/g, "$$$1")
-            .replace(/page\.tsx$/, "index.tsx");
+          // Get the dynamic segment name (e.g., "slug" from "[slug]")
+          const dirName = FileSystem.basename(dir);
+          const paramName = dirName.replace(/\[([^\]]+)\]/, "$1");
 
-          const newPath = path.join(routesDir, newRelativePath);
+          // New file: $slug.tsx in parent directory
+          const newPath = path.join(parentDir, `$${paramName}.tsx`);
 
-          logger.info(
-            `Transforming dynamic route: ${file} → ${newRelativePath}`
-          );
+          logger.info(`Transforming dynamic route: ${file} → $${paramName}.tsx`);
           await FileSystem.move(fullPath, newPath);
+
+          // Remove the now-empty directory
+          await FileSystem.remove(dir);
         }
 
         return;
@@ -112,6 +105,7 @@ export class FileTransformer {
 
   /**
    * Transform catch-all routes: [...slug]/page.tsx → $.tsx
+   * Example: posts/[...slug]/page.tsx → posts/$.tsx
    */
   async transformCatchAllRoutes(): Promise<void> {
     const appDirs = [
@@ -129,13 +123,16 @@ export class FileTransformer {
         for (const file of files) {
           const fullPath = path.join(appDir, file);
           const dir = FileSystem.dirname(fullPath);
-          const newDir = dir
-            .replace(/[/\\]app[/\\]/, "/routes/")
-            .replace(/\[\.\.\..*?\]$/, "");
-          const newPath = path.join(newDir, "$.tsx");
+          const parentDir = FileSystem.dirname(dir);
+
+          // New file: $.tsx in parent directory
+          const newPath = path.join(parentDir, "$.tsx");
 
           logger.info(`Transforming catch-all route: ${file} → $.tsx`);
           await FileSystem.move(fullPath, newPath);
+
+          // Remove the now-empty directory
+          await FileSystem.remove(dir);
         }
 
         return;
@@ -144,88 +141,12 @@ export class FileTransformer {
   }
 
   /**
-   * Move all remaining route files from app/ to routes/
-   */
-  async moveRemainingRoutes(): Promise<void> {
-    const appDirs = [
-      path.join(this.projectPath, "src", "app"),
-      path.join(this.projectPath, "app"),
-    ];
-
-    for (const appDir of appDirs) {
-      if (await FileSystem.exists(appDir)) {
-        const routesDir = appDir.replace(/[/\\]app$/, "/routes");
-
-        // Find all remaining .tsx and .ts files
-        const files = await FileSystem.findFiles("**/*.{tsx,ts}", {
-          cwd: appDir,
-          ignore: ["**/node_modules/**", "**/*.d.ts"],
-        });
-
-        for (const file of files) {
-          const fullPath = path.join(appDir, file);
-
-          // Skip if already moved
-          if (!(await FileSystem.exists(fullPath))) {
-            continue;
-          }
-
-          const newPath = path.join(routesDir, file);
-
-          // Skip if already in routes
-          if (
-            fullPath.includes("/routes/") ||
-            fullPath.includes("\\routes\\")
-          ) {
-            continue;
-          }
-
-          logger.info(`Moving route file: ${file}`);
-          await FileSystem.move(fullPath, newPath);
-        }
-
-        return;
-      }
-    }
-  }
-
-  /**
-   * Move CSS files to appropriate location
+   * CSS files handling - kept in app directory, renamed in ConfigTransformer
    */
   async moveCssFiles(): Promise<void> {
-    const appDirs = [
-      path.join(this.projectPath, "src", "app"),
-      path.join(this.projectPath, "app"),
-    ];
-
-    for (const appDir of appDirs) {
-      if (await FileSystem.exists(appDir)) {
-        const srcDir =
-          appDir.includes("/src/") || appDir.includes("\\src\\")
-            ? path.join(this.projectPath, "src")
-            : this.projectPath;
-
-        // Find CSS files
-        const cssFiles = await FileSystem.findFiles("**/*.css", {
-          cwd: appDir,
-        });
-
-        for (const cssFile of cssFiles) {
-          const fullPath = path.join(appDir, cssFile);
-          const fileName = FileSystem.basename(cssFile);
-
-          // Move to src/ root or project root
-          const newPath = path.join(srcDir, fileName);
-
-          if (fullPath !== newPath) {
-            logger.info(`Moving CSS file: ${cssFile} → ${fileName}`);
-            await FileSystem.move(fullPath, newPath);
-          }
-        }
-
-        return;
-      }
-    }
+    // CSS files stay in their app directory
+    // They are renamed from globals.css to styles.css in ConfigTransformer.renameGlobalCss()
+    logger.info("CSS files will be handled by ConfigTransformer");
   }
 
   /**

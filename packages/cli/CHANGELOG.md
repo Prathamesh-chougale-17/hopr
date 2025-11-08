@@ -1,5 +1,26 @@
 # hopr
 
+## 0.2.1
+
+### Patch Changes
+
+- ## Critical Migration Guide Compliance Fixes
+
+  ### Bug Fixes
+  - **Routes directory**: Fixed routes incorrectly moving to `src/routes/` instead of staying in `src/app/`
+  - **Vite config**: Updated to use `routesDirectory: "app"` matching TanStack Start guide
+  - **Link transformation**: Fixed href→to only applying to `<Link>` components, not `<a>` tags
+  - **Route structure**: Dynamic routes now correctly transform to flat structure (`$slug.tsx` not `$slug/index.tsx`)
+
+  ### Migration Now Follows Official Guide
+
+  Per the [TanStack Start migration guide](https://tanstack.com/router/latest/docs/framework/react/start/migrate-from-next-js):
+  - Routes stay in `src/app/` directory
+  - `layout.tsx` → `__root.tsx` (in same directory)
+  - `page.tsx` → `index.tsx` (in same directory)
+  - `[slug]/page.tsx` → `$slug.tsx` (flat structure)
+  - Only `<Link href>` transforms to `<Link to>`, `<a href>` preserved
+
 ## 0.2.0
 
 ### Minor Changes

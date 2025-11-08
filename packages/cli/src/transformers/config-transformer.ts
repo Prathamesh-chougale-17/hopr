@@ -19,19 +19,20 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import viteTsConfigPaths from "vite-tsconfig-paths";
 import tailwindcss from "@tailwindcss/vite";
-import { nitroV2Plugin } from "@tanstack/nitro-v2-vite-plugin";
 
 export default defineConfig({
+  server: {
+    port: 3000,
+  },
   plugins: [
-    nitroV2Plugin(),
+    tailwindcss(),
     viteTsConfigPaths({
       projects: ["./tsconfig.json"],
     }),
-    tailwindcss(),
     tanstackStart({
       srcDirectory: "src",
       router: {
-        routesDirectory: "routes",
+        routesDirectory: "app",
       },
     }),
     viteReact(),

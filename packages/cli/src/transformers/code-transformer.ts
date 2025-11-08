@@ -158,8 +158,12 @@ function RootLayout() {
       'import { Link } from "@tanstack/react-router"'
     );
 
-    // Transform href to to prop
-    transformed = transformed.replace(/\shref=/g, " to=");
+    // Transform href to to prop ONLY in Link components (not in <a> tags)
+    // Match: <Link href=" or <Link...href="
+    transformed = transformed.replace(
+      /(<Link[^>]*)\shref=/g,
+      "$1 to="
+    );
 
     // Transform Next.js Image to regular img
     transformed = transformed.replace(
