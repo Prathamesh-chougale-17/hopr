@@ -2,7 +2,6 @@ import path from "path";
 import ora from "ora";
 import prompts from "prompts";
 import {
-  createBackup,
   writeFile,
   writeJSON,
   readJSON,
@@ -64,17 +63,8 @@ export class Migrator {
         }
       }
 
-      // Step 4: Create backup
-      if (this.options.backup && !this.options.dryRun) {
-        spinner.start("Creating backup...");
-        const projectName = path.basename(this.options.sourceDir);
-        const parentDir = path.dirname(this.options.sourceDir);
-        const backupDir =
-          this.options.backupDir ||
-          path.join(parentDir, `${projectName}-backup-${Date.now()}`);
-        await createBackup(this.options.sourceDir, backupDir);
-        spinner.succeed(`Backup created at ${backupDir}`);
-      }
+      // Step 4: Backup disabled
+      // Backup functionality has been removed
 
       // Step 5: Transform
       spinner.start("Transforming code...");
@@ -178,7 +168,6 @@ export class Migrator {
         const toPath = path.join(this.options.sourceDir, to);
         try {
           const {
-            copyFile: copyUtil,
             remove: removeUtil,
             fileExists,
           } = await import("../utils/index.js");
@@ -264,7 +253,7 @@ export class Migrator {
     await writeJSON(packageJsonPath, packageJson);
   }
 
-  private async cleanup(output: TransformedOutput): Promise<void> {
+  private async cleanup(_output: TransformedOutput): Promise<void> {
     // Cleanup is now done in generateFiles before writing new files
     // This method is kept for backwards compatibility but doesn't do anything
   }

@@ -8,7 +8,7 @@ program
   .description(
     "A powerful CLI tool for migrating fullstack web projects between frameworks"
   )
-  .version("1.0.2");
+  .version("1.0.3");
 
 // Register commands
 program.addCommand(createDetectCommand());

@@ -1,8 +1,38 @@
 # hopr
 
+## 1.0.3
+
+### Patch Changes
+
+- **Removed Backup Functionality**
+  - Disabled automatic backup creation during migration
+  - Users should use git or their own backup solution before running migrations
+  - No backup folders will be created in the parent directory
+
+  **Next.js Image Component Transformation**
+  - Added AST transformer to convert Next.js `<Image>` components to standard HTML `<img>` tags
+  - Automatically removes Next.js-specific props (`priority`, `fill`, `quality`, `placeholder`, `blurDataURL`, `loading`)
+  - Preserves standard HTML attributes (`src`, `alt`, `width`, `height`, `className`)
+
+  Example transformation:
+
+  ```tsx
+  // Before
+  <Image src="/logo.svg" alt="Logo" width={100} height={20} priority />
+
+  // After
+  <img src="/logo.svg" alt="Logo" width={100} height={20} />
+  ```
+
 ## 1.0.2
 
 ### Patch Changes
+
+- **Removed Backup Functionality** 🗑️
+  - **Change:** Disabled automatic backup creation during migration
+  - **Reason:** Backup functionality has been removed to simplify the migration process
+  - **Migration:** Users should use git or their own backup solution before running migrations
+  - **Impact:** No backup folders will be created in the parent directory
 
 - **Next.js Image Component Transformation** ✅
   - **Problem:** Next.js `<Image>` components were not being transformed during migration, leaving undefined component references in the migrated code
@@ -12,6 +42,7 @@
     - Removes Next.js-specific props (`priority`, `fill`, `quality`, `placeholder`, `blurDataURL`, `loading`)
     - Preserves standard HTML attributes (`src`, `alt`, `width`, `height`, `className`)
   - **Example:**
+
     ```tsx
     // Before
     <Image src="/logo.svg" alt="Logo" width={100} height={20} priority />
